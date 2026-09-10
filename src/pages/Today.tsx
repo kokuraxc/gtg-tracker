@@ -8,12 +8,35 @@ import './Today.css';
 
 interface SetWithExercise extends WorkoutSet {
   exerciseName: string;
+  trackingType: 'reps' | 'duration' | 'distance';
+  durationUnit?: 'min' | 'sec';
+}
+
+function formatSetValue(s: SetWithExercise): string {
+  if (s.trackingType === 'duration') {
+    const unit = s.durationUnit ?? 'sec';
+    return `${s.duration ?? 0} ${unit}`;
+  }
+  if (s.trackingType === 'distance') return `${s.distance ?? 0} km`;
+  return `${s.reps ?? 0} reps`;
+}
+
+function getDefaultValue(ex: Exercise): number {
+  if (ex.trackingType === 'duration') return ex.defaultDuration ?? 60;
+  if (ex.trackingType === 'distance') return ex.defaultDistance ?? 1;
+  return ex.defaultReps ?? 5;
+}
+
+function getUnit(ex: Exercise): string {
+  if (ex.trackingType === 'duration') return ex.durationUnit ?? 'sec';
+  if (ex.trackingType === 'distance') return 'km';
+  return 'reps';
 }
 
 export default function Today() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
-  const [reps, setReps] = useState(5);
+  const [value, setValue] = useState(5);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [allTodaySets, setAllTodaySets] = useState<SetWithExercise[]>([]);
   const [justLogged, setJustLogged] = useState(false);
@@ -25,7 +48,12 @@ export default function Today() {
       const exercise = exerciseList.find(ex => ex.id === session.exerciseId);
       const sets = await getSetsBySession(session.id!);
       for (const set of sets) {
-        result.push({ ...set, exerciseName: exercise?.name ?? 'Unknown' });
+        result.push({
+          ...set,
+          exerciseName: exercise?.name ?? 'Unknown',
+          trackingType: exercise?.trackingType ?? 'reps',
+          durationUnit: exercise?.durationUnit,
+        });
       }
     }
     result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -41,7 +69,7 @@ export default function Today() {
 
   async function selectExercise(ex: Exercise, exerciseList?: Exercise[]) {
     setSelectedExercise(ex);
-    setReps(ex.defaultReps ?? 5);
+    setValue(getDefaultValue(ex));
     const sid = await getOrCreateTodaySession(ex.id!);
     setSessionId(sid);
     await loadAllTodaySets(exerciseList ?? exercises);
@@ -50,24 +78,37 @@ export default function Today() {
   async function logSet() {
     if (!sessionId || !selectedExercise) return;
     const sessionSets = allTodaySets.filter(s => s.exerciseName === selectedExercise.name);
-    await addSet({
+    const setData: Omit<WorkoutSet, 'id'> = {
       sessionId,
       setNumber: sessionSets.length + 1,
-      reps,
       timestamp: new Date(),
-    });
+    };
+    if (selectedExercise.trackingType === 'reps') setData.reps = value;
+    else if (selectedExercise.trackingType === 'duration') setData.duration = value;
+    else if (selectedExercise.trackingType === 'distance') setData.distance = value;
+
+    await addSet(setData);
     await loadAllTodaySets(exercises);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1500);
   }
 
-  const totalReps = allTodaySets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+  const unit = selectedExercise ? getUnit(selectedExercise) : 'reps';
+  const step = selectedExercise?.trackingType === 'distance' ? 0.1 : 1;
+  const minValue = selectedExercise?.trackingType === 'distance' ? 0.1 : 1;
+
+  // Summary line — only count reps exercises
+  const totalReps = allTodaySets
+    .filter(s => s.trackingType === 'reps')
+    .reduce((sum, s) => sum + (s.reps ?? 0), 0);
+  const summaryText = totalReps > 0
+    ? `${allTodaySets.length} sets · ${totalReps} reps`
+    : `${allTodaySets.length} sets`;
 
   function formatTime(date: Date) {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  // Group sets by exercise for display
   const setsByExercise = allTodaySets.reduce<Record<string, SetWithExercise[]>>((acc, s) => {
     if (!acc[s.exerciseName]) acc[s.exerciseName] = [];
     acc[s.exerciseName].push(s);
@@ -95,12 +136,12 @@ export default function Today() {
       {selectedExercise && (
         <div className="exercise-card">
           <div className="exercise-name">{selectedExercise.name}</div>
-          <div className="exercise-target">Target: {reps} reps</div>
+          <div className="exercise-target">Target: {value} {unit}</div>
 
           <div className="rep-counter">
-            <button className="rep-btn" onClick={() => setReps(r => Math.max(1, r - 1))}>−</button>
-            <span className="rep-value">{reps}</span>
-            <button className="rep-btn" onClick={() => setReps(r => r + 1)}>+</button>
+            <button className="rep-btn" onClick={() => setValue(v => Math.max(minValue, parseFloat((v - step).toFixed(1))))}>−</button>
+            <span className="rep-value">{value}</span>
+            <button className="rep-btn" onClick={() => setValue(v => parseFloat((v + step).toFixed(1)))}>+</button>
           </div>
 
           <button
@@ -116,7 +157,7 @@ export default function Today() {
         <div className="sets-section">
           <div className="sets-header">
             <span>Today's sets</span>
-            <span className="sets-summary">{allTodaySets.length} sets · {totalReps} reps</span>
+            <span className="sets-summary">{summaryText}</span>
           </div>
 
           {Object.entries(setsByExercise).map(([exerciseName, exSets]) => (
@@ -129,7 +170,7 @@ export default function Today() {
                   <li key={s.id} className="set-item">
                     <span className="set-number">Set {exSets.length - i}</span>
                     <span className="set-time">{formatTime(s.timestamp)}</span>
-                    <span className="set-reps">{s.reps} reps</span>
+                    <span className="set-reps">{formatSetValue(s)}</span>
                   </li>
                 ))}
               </ul>
