@@ -1,16 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getAllExercises, addExercise as dbAddExercise, updateExercise as dbUpdateExercise, seedDefaultExercises } from '../db/exercises';
+import { db } from '../db/database';
+import type { Exercise } from '../models/Exercise';
 import './Exercises.css';
-
-interface Exercise {
-  id: number;
-  name: string;
-  trackingType: 'reps' | 'duration' | 'distance';
-  supportsWeight: boolean;
-  defaultReps?: number;
-  defaultDuration?: number;
-  durationUnit?: 'min' | 'sec';
-  defaultDistance?: number;
-}
 
 function formatMeta(ex: Exercise) {
   const parts: string[] = [];
@@ -21,13 +13,6 @@ function formatMeta(ex: Exercise) {
   return parts.join(' · ');
 }
 
-const DEFAULT_EXERCISES: Exercise[] = [
-  { id: 1, name: 'Pull-up', trackingType: 'reps', supportsWeight: true, defaultReps: 5 },
-  { id: 2, name: 'Push-up', trackingType: 'reps', supportsWeight: false, defaultReps: 20 },
-  { id: 3, name: 'Chin-up', trackingType: 'reps', supportsWeight: true, defaultReps: 5 },
-];
-
-// Shared form fields component
 function ExerciseForm({
   title,
   name, setName,
@@ -40,6 +25,7 @@ function ExerciseForm({
   nameEditable,
   onSave,
   onCancel,
+  onDelete,
   saveLabel = 'Save',
 }: {
   title: string;
@@ -53,6 +39,7 @@ function ExerciseForm({
   nameEditable: boolean;
   onSave: () => void;
   onCancel: () => void;
+  onDelete?: () => void;
   saveLabel?: string;
 }) {
   return (
@@ -73,12 +60,7 @@ function ExerciseForm({
       <div className="radio-group">
         {(['reps', 'duration', 'distance'] as const).map(t => (
           <label key={t} className="radio-option">
-            <input
-              type="radio"
-              value={t}
-              checked={trackingType === t}
-              onChange={() => setTrackingType(t)}
-            />
+            <input type="radio" value={t} checked={trackingType === t} onChange={() => setTrackingType(t)} />
             {t}
           </label>
         ))}
@@ -87,13 +69,8 @@ function ExerciseForm({
       {trackingType === 'reps' && (
         <div className="default-value-row">
           <label className="field-label">Default reps</label>
-          <input
-            type="number"
-            className="field-input field-input--small"
-            min={1}
-            value={defaultReps}
-            onChange={e => setDefaultReps(Number(e.target.value))}
-          />
+          <input type="number" className="field-input field-input--small" min={1} value={defaultReps}
+            onChange={e => setDefaultReps(Number(e.target.value))} />
         </div>
       )}
 
@@ -101,23 +78,13 @@ function ExerciseForm({
         <div className="default-value-row">
           <label className="field-label">Default duration</label>
           <div className="duration-row">
-            <input
-              type="number"
-              className="field-input field-input--small"
-              min={1}
-              value={defaultDuration}
-              onChange={e => setDefaultDuration(Number(e.target.value))}
-            />
+            <input type="number" className="field-input field-input--small" min={1} value={defaultDuration}
+              onChange={e => setDefaultDuration(Number(e.target.value))} />
             <div className="unit-toggle">
               {(['sec', 'min'] as const).map(u => (
-                <button
-                  key={u}
-                  type="button"
+                <button key={u} type="button"
                   className={`unit-btn ${durationUnit === u ? 'unit-btn--active' : ''}`}
-                  onClick={() => setDurationUnit(u)}
-                >
-                  {u}
-                </button>
+                  onClick={() => setDurationUnit(u)}>{u}</button>
               ))}
             </div>
           </div>
@@ -127,23 +94,13 @@ function ExerciseForm({
       {trackingType === 'distance' && (
         <div className="default-value-row">
           <label className="field-label">Default distance (km)</label>
-          <input
-            type="number"
-            className="field-input field-input--small"
-            min={0.1}
-            step={0.1}
-            value={defaultDistance}
-            onChange={e => setDefaultDistance(Number(e.target.value))}
-          />
+          <input type="number" className="field-input field-input--small" min={0.1} step={0.1} value={defaultDistance}
+            onChange={e => setDefaultDistance(Number(e.target.value))} />
         </div>
       )}
 
       <label className="field-label checkbox-label">
-        <input
-          type="checkbox"
-          checked={supportsWeight}
-          onChange={e => setSupportsWeight(e.target.checked)}
-        />
+        <input type="checkbox" checked={supportsWeight} onChange={e => setSupportsWeight(e.target.checked)} />
         Supports added weight
       </label>
 
@@ -151,16 +108,19 @@ function ExerciseForm({
         <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         <button className="btn-primary" onClick={onSave}>{saveLabel}</button>
       </div>
+
+      {onDelete && (
+        <button className="btn-delete" onClick={onDelete}>Delete Exercise</button>
+      )}
     </div>
   );
 }
 
 export default function Exercises() {
-  const [exercises, setExercises] = useState<Exercise[]>(DEFAULT_EXERCISES);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // Shared form state (used for both add and edit)
   const [name, setName] = useState('');
   const [trackingType, setTrackingType] = useState<'reps' | 'duration' | 'distance'>('reps');
   const [supportsWeight, setSupportsWeight] = useState(false);
@@ -169,62 +129,83 @@ export default function Exercises() {
   const [durationUnit, setDurationUnit] = useState<'min' | 'sec'>('sec');
   const [defaultDistance, setDefaultDistance] = useState(1);
 
-  function formValues(ex: Exercise) {
-    setName(ex.name);
-    setTrackingType(ex.trackingType);
-    setSupportsWeight(ex.supportsWeight);
-    setDefaultReps(ex.defaultReps ?? 5);
-    setDefaultDuration(ex.defaultDuration ?? 60);
-    setDurationUnit(ex.durationUnit ?? 'sec');
-    setDefaultDistance(ex.defaultDistance ?? 1);
+  useEffect(() => {
+    seedDefaultExercises().then(loadExercises);
+  }, []);
+
+  async function loadExercises() {
+    const all = await getAllExercises();
+    setExercises(all);
   }
 
   function resetForm() {
-    setName('');
-    setTrackingType('reps');
-    setSupportsWeight(false);
-    setDefaultReps(5);
-    setDefaultDuration(60);
-    setDurationUnit('sec');
-    setDefaultDistance(1);
+    setName(''); setTrackingType('reps'); setSupportsWeight(false);
+    setDefaultReps(5); setDefaultDuration(60); setDurationUnit('sec'); setDefaultDistance(1);
   }
 
-  function buildExerciseData(id: number): Exercise {
+  function populateForm(ex: Exercise) {
+    setName(ex.name); setTrackingType(ex.trackingType); setSupportsWeight(ex.supportsWeight);
+    setDefaultReps(ex.defaultReps ?? 5); setDefaultDuration(ex.defaultDuration ?? 60);
+    setDurationUnit(ex.durationUnit ?? 'sec'); setDefaultDistance(ex.defaultDistance ?? 1);
+  }
+
+  function buildPayload() {
+    const now = new Date();
     return {
-      id,
-      name: name.trim(),
       trackingType,
       supportsWeight,
+      supportsReps: trackingType === 'reps',
+      supportsDuration: trackingType === 'duration',
+      supportsDistance: trackingType === 'distance',
       defaultReps: trackingType === 'reps' ? defaultReps : undefined,
       defaultDuration: trackingType === 'duration' ? defaultDuration : undefined,
       durationUnit: trackingType === 'duration' ? durationUnit : undefined,
       defaultDistance: trackingType === 'distance' ? defaultDistance : undefined,
+      updatedAt: now,
     };
   }
 
-  function addExercise() {
+  async function addExercise() {
     if (!name.trim()) return;
-    setExercises(prev => [...prev, buildExerciseData(Date.now())]);
+    const now = new Date();
+    await dbAddExercise({
+      name: name.trim(),
+      category: 'strength',
+      ...buildPayload(),
+      createdAt: now,
+      updatedAt: now,
+      archived: false,
+    });
     resetForm();
     setShowAddForm(false);
+    loadExercises();
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     if (editingId === null) return;
-    setExercises(prev => prev.map(ex => ex.id === editingId ? buildExerciseData(editingId) : ex));
+    await dbUpdateExercise(editingId, buildPayload());
     setEditingId(null);
     resetForm();
+    loadExercises();
+  }
+
+  async function deleteExercise() {
+    if (editingId === null) return;
+    if (!confirm('Delete this exercise? Its history will be kept.')) return;
+    await db.exercises.update(editingId, { archived: true });
+    setEditingId(null);
+    resetForm();
+    loadExercises();
   }
 
   function startEdit(ex: Exercise) {
-    formValues(ex);
-    setEditingId(ex.id);
+    populateForm(ex);
+    setEditingId(ex.id!);
     setShowAddForm(false);
   }
 
   const formProps = {
-    name, setName,
-    trackingType, setTrackingType,
+    name, setName, trackingType, setTrackingType,
     supportsWeight, setSupportsWeight,
     defaultReps, setDefaultReps,
     defaultDuration, setDefaultDuration,
@@ -240,14 +221,9 @@ export default function Exercises() {
         {exercises.map(ex => (
           <li key={ex.id}>
             {editingId === ex.id ? (
-              <ExerciseForm
-                title="Edit Exercise"
-                {...formProps}
-                nameEditable={false}
-                onSave={saveEdit}
-                onCancel={() => { setEditingId(null); resetForm(); }}
-                saveLabel="Update"
-              />
+              <ExerciseForm title="Edit Exercise" {...formProps} nameEditable={false}
+                onSave={saveEdit} onCancel={() => { setEditingId(null); resetForm(); }}
+                onDelete={deleteExercise} saveLabel="Update" />
             ) : (
               <button className="exercise-item" onClick={() => startEdit(ex)}>
                 <span className="exercise-item-name">{ex.name}</span>
@@ -259,13 +235,8 @@ export default function Exercises() {
       </ul>
 
       {showAddForm ? (
-        <ExerciseForm
-          title="New Exercise"
-          {...formProps}
-          nameEditable={true}
-          onSave={addExercise}
-          onCancel={() => { resetForm(); setShowAddForm(false); }}
-        />
+        <ExerciseForm title="New Exercise" {...formProps} nameEditable={true}
+          onSave={addExercise} onCancel={() => { resetForm(); setShowAddForm(false); }} />
       ) : (
         !editingId && (
           <button className="add-exercise-btn" onClick={() => { resetForm(); setShowAddForm(true); }}>

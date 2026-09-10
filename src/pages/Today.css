@@ -2,6 +2,30 @@
   padding-bottom: 5rem;
 }
 
+.exercise-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.exercise-tab {
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  background: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #555;
+}
+
+.exercise-tab--active {
+  background: #007aff;
+  color: #fff;
+  border-color: #007aff;
+  font-weight: 600;
+}
+
 .today-title {
   font-size: 1.5rem;
   margin: 0 0 1rem;
@@ -99,6 +123,19 @@
   font-size: 0.85rem;
   color: #007aff;
   font-weight: 400;
+}
+
+.sets-exercise-group {
+  margin-bottom: 0.5rem;
+}
+
+.sets-exercise-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.75rem 0 0.25rem;
 }
 
 .sets-list {

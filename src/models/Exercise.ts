@@ -7,6 +7,10 @@ export interface Exercise {
   supportsReps: boolean;
   supportsDuration: boolean;
   supportsDistance: boolean;
+  defaultReps?: number;
+  defaultDuration?: number;
+  durationUnit?: 'min' | 'sec';
+  defaultDistance?: number;
   createdAt: Date;
   updatedAt: Date;
   archived: boolean;
