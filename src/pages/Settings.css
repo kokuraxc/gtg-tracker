@@ -1,0 +1,61 @@
+.settings {
+  padding-bottom: 5rem;
+}
+
+.settings-title {
+  font-size: 1.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.settings-section {
+  margin-bottom: 2rem;
+}
+
+.settings-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.setting-label {
+  font-size: 0.95rem;
+}
+
+.setting-input {
+  width: 70px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.settings-btn {
+  display: block;
+  width: 100%;
+  padding: 0.85rem;
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background: #f5f5f7;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-btn--danger {
+  color: #ff3b30;
+  border-color: #ff3b30;
+  background: #fff5f5;
+}

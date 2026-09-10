@@ -1,0 +1,138 @@
+.today {
+  padding-bottom: 5rem;
+}
+
+.today-title {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+}
+
+.exercise-card {
+  background: #f5f5f7;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.exercise-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.exercise-target {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.rep-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rep-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid #007aff;
+  background: #fff;
+  color: #007aff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.rep-btn:active {
+  background: #e5f0ff;
+}
+
+.rep-value {
+  font-size: 3rem;
+  font-weight: 700;
+  min-width: 3rem;
+  text-align: center;
+}
+
+.log-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.log-btn:active {
+  background: #0062cc;
+}
+
+.log-btn--success {
+  background: #34c759;
+}
+
+.sets-section {
+  margin-top: 1.5rem;
+}
+
+.sets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.sets-summary {
+  font-size: 0.85rem;
+  color: #007aff;
+  font-weight: 400;
+}
+
+.sets-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.set-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+  gap: 0.5rem;
+}
+
+.set-number {
+  font-size: 0.85rem;
+  color: #888;
+  width: 3rem;
+}
+
+.set-time {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.set-reps {
+  font-weight: 600;
+}
+
+.no-sets {
+  color: #999;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+}

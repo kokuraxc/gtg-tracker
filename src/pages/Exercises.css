@@ -1,0 +1,120 @@
+.exercises {
+  padding-bottom: 5rem;
+}
+
+.exercises-title {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+}
+
+.exercise-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.exercise-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.exercise-item-name {
+  font-weight: 600;
+}
+
+.exercise-item-meta {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.add-exercise-btn {
+  width: 100%;
+  padding: 0.9rem;
+  border: 2px dashed #007aff;
+  border-radius: 12px;
+  background: none;
+  color: #007aff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.add-form {
+  background: #f5f5f7;
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.add-form h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.3rem;
+  margin-top: 0.75rem;
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  margin-top: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #007aff;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #e5e5ea;
+  color: #333;
+}

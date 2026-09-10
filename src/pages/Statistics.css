@@ -1,0 +1,38 @@
+.statistics {
+  padding-bottom: 5rem;
+}
+
+.statistics-title {
+  font-size: 1.5rem;
+  margin: 0 0 0.25rem;
+}
+
+.stats-exercise-name {
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 1.25rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.stat-card {
+  background: #f5f5f7;
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #666;
+}
