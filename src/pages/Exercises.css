@@ -19,6 +19,17 @@
   align-items: center;
   padding: 0.9rem 0;
   border-bottom: 1px solid #eee;
+  width: 100%;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.exercise-item:active {
+  background: #f5f5f7;
 }
 
 .exercise-item-name {
@@ -69,6 +80,43 @@
   border-radius: 8px;
   font-size: 1rem;
   box-sizing: border-box;
+}
+
+.field-input--small {
+  width: 90px;
+}
+
+.default-value-row {
+  margin-top: 0.75rem;
+}
+
+.duration-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.unit-toggle {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.unit-btn {
+  padding: 0.55rem 0.75rem;
+  border: none;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #555;
+}
+
+.unit-btn--active {
+  background: #007aff;
+  color: #fff;
+  font-weight: 600;
 }
 
 .radio-group {
