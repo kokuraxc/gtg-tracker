@@ -70,16 +70,18 @@ export default function Today() {
   async function selectExercise(ex: Exercise, exerciseList?: Exercise[]) {
     setSelectedExercise(ex);
     setValue(getDefaultValue(ex));
-    const sid = await getOrCreateTodaySession(ex.id!);
-    setSessionId(sid);
+    setSessionId(null); // reset; session created lazily on first log
     await loadAllTodaySets(exerciseList ?? exercises);
   }
 
   async function logSet() {
-    if (!sessionId || !selectedExercise) return;
+    if (!selectedExercise) return;
+    // Lazily create session on first set log — avoids duplicate empty sessions
+    const sid = sessionId ?? await getOrCreateTodaySession(selectedExercise.id!);
+    setSessionId(sid);
     const sessionSets = allTodaySets.filter(s => s.exerciseName === selectedExercise.name);
     const setData: Omit<WorkoutSet, 'id'> = {
-      sessionId,
+      sessionId: sid,
       setNumber: sessionSets.length + 1,
       timestamp: new Date(),
     };
@@ -89,6 +91,7 @@ export default function Today() {
 
     await addSet(setData);
     await loadAllTodaySets(exercises);
+    setSessionId(sid);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1500);
   }

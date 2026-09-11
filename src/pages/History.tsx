@@ -208,6 +208,8 @@ export default function History() {
 
       const total = sets.reduce((sum, s) => sum + (s.reps ?? s.duration ?? s.distance ?? 0), 0);
 
+      if (sets.length === 0) continue; // skip empty sessions
+
       if (!grouped[dateKey]) grouped[dateKey] = { dateLabel, sessions: [] };
       grouped[dateKey].sessions.push({
         session, exercise, sets,

@@ -59,3 +59,20 @@
   border-color: #ff3b30;
   background: #fff5f5;
 }
+
+.status-banner {
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.status-banner--success {
+  background: #e8f8ee;
+  color: #1a7a3c;
+}
+
+.status-banner--error {
+  background: #fff0ef;
+  color: #c0392b;
+}
