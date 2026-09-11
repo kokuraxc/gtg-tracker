@@ -15,6 +15,16 @@ export class GTGDatabase extends Dexie {
       sessions: '++id, exerciseId, startedAt, protocol',
       sets: '++id, sessionId, timestamp',
     });
+    // Version 2: add sortOrder index
+    this.version(2).stores({
+      exercises: '++id, name, category, archived, sortOrder',
+      sessions: '++id, exerciseId, startedAt, protocol',
+      sets: '++id, sessionId, timestamp',
+    }).upgrade(tx => {
+      return tx.table('exercises').toCollection().modify((ex, ref) => {
+        if (ex.sortOrder == null) ref.value.sortOrder = ex.id ?? 0;
+      });
+    });
   }
 }
 

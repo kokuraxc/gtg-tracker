@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { getAllExercises, addExercise as dbAddExercise, updateExercise as dbUpdateExercise, seedDefaultExercises } from '../db/exercises';
+import { useState, useEffect, useRef } from 'react';
+import { getAllExercises, addExercise as dbAddExercise, updateExercise as dbUpdateExercise, seedDefaultExercises, saveExerciseOrder } from '../db/exercises';
 import { db } from '../db/database';
 import type { Exercise } from '../models/Exercise';
 import './Exercises.css';
@@ -129,6 +129,10 @@ export default function Exercises() {
   const [durationUnit, setDurationUnit] = useState<'min' | 'sec'>('sec');
   const [defaultDistance, setDefaultDistance] = useState(1);
 
+  // Drag state
+  const dragIndex = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
   useEffect(() => {
     seedDefaultExercises().then(loadExercises);
   }, []);
@@ -172,6 +176,7 @@ export default function Exercises() {
       name: name.trim(),
       category: 'strength',
       ...buildPayload(),
+      sortOrder: exercises.length,
       createdAt: now,
       updatedAt: now,
       archived: false,
@@ -179,6 +184,71 @@ export default function Exercises() {
     resetForm();
     setShowAddForm(false);
     loadExercises();
+  }
+
+  // ── Drag handlers ──────────────────────────────────────────
+  function onDragStart(i: number) {
+    dragIndex.current = i;
+  }
+
+  function onDragOver(e: React.DragEvent, i: number) {
+    e.preventDefault();
+    setDragOverIndex(i);
+  }
+
+  async function onDrop(i: number) {
+    const from = dragIndex.current;
+    if (from === null || from === i) { setDragOverIndex(null); return; }
+    const reordered = [...exercises];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(i, 0, moved);
+    setExercises(reordered);
+    setDragOverIndex(null);
+    dragIndex.current = null;
+    await saveExerciseOrder(reordered);
+  }
+
+  function onDragEnd() {
+    dragIndex.current = null;
+    setDragOverIndex(null);
+  }
+
+  // Touch drag
+  const touchDragIndex = useRef<number | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  function onTouchStart(i: number) {
+    touchDragIndex.current = i;
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (touchDragIndex.current === null || !listRef.current) return;
+    const touch = e.touches[0];
+    const items = listRef.current.querySelectorAll<HTMLElement>('[data-index]');
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        const idx = Number(item.dataset.index);
+        setDragOverIndex(idx);
+        break;
+      }
+    }
+  }
+
+  async function onTouchEnd() {
+    const from = touchDragIndex.current;
+    if (from === null || dragOverIndex === null || from === dragOverIndex) {
+      touchDragIndex.current = null;
+      setDragOverIndex(null);
+      return;
+    }
+    const reordered = [...exercises];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(dragOverIndex, 0, moved);
+    setExercises(reordered);
+    touchDragIndex.current = null;
+    setDragOverIndex(null);
+    await saveExerciseOrder(reordered);
   }
 
   async function saveEdit() {
@@ -217,18 +287,34 @@ export default function Exercises() {
     <div className="exercises">
       <h2 className="exercises-title">Exercises</h2>
 
-      <ul className="exercise-list">
-        {exercises.map(ex => (
-          <li key={ex.id}>
+      <ul className="exercise-list" ref={listRef} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+        {exercises.map((ex, i) => (
+          <li
+            key={ex.id}
+            data-index={i}
+            className={`exercise-list-item ${dragOverIndex === i ? 'exercise-list-item--over' : ''}`}
+            draggable={!editingId}
+            onDragStart={() => onDragStart(i)}
+            onDragOver={e => onDragOver(e, i)}
+            onDrop={() => onDrop(i)}
+            onDragEnd={onDragEnd}
+          >
             {editingId === ex.id ? (
               <ExerciseForm title="Edit Exercise" {...formProps} nameEditable={false}
                 onSave={saveEdit} onCancel={() => { setEditingId(null); resetForm(); }}
                 onDelete={deleteExercise} saveLabel="Update" />
             ) : (
-              <button className="exercise-item" onClick={() => startEdit(ex)}>
-                <span className="exercise-item-name">{ex.name}</span>
-                <span className="exercise-item-meta">{formatMeta(ex)}</span>
-              </button>
+              <div className="exercise-item-row">
+                <span
+                  className="drag-handle"
+                  onTouchStart={() => onTouchStart(i)}
+                  onMouseDown={e => e.stopPropagation()}
+                >☰</span>
+                <button className="exercise-item" onClick={() => startEdit(ex)}>
+                  <span className="exercise-item-name">{ex.name}</span>
+                  <span className="exercise-item-meta">{formatMeta(ex)}</span>
+                </button>
+              </div>
             )}
           </li>
         ))}

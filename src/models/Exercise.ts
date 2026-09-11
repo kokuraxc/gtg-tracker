@@ -11,6 +11,7 @@ export interface Exercise {
   defaultDuration?: number;
   durationUnit?: 'min' | 'sec';
   defaultDistance?: number;
+  sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
   archived: boolean;

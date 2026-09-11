@@ -13,17 +13,45 @@
   padding: 0;
 }
 
+.exercise-list-item {
+  list-style: none;
+  border-bottom: 1px solid #eee;
+  transition: background 0.1s;
+}
+
+.exercise-list-item--over {
+  background: #e8f0ff;
+  border-radius: 8px;
+}
+
+.exercise-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.drag-handle {
+  font-size: 1.1rem;
+  color: #ccc;
+  padding: 0.9rem 0.25rem 0.9rem 0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .exercise-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.9rem 0;
-  border-bottom: 1px solid #eee;
-  width: 100%;
+  flex: 1;
   background: none;
-  border-left: none;
-  border-right: none;
-  border-top: none;
+  border: none;
   cursor: pointer;
   text-align: left;
 }
