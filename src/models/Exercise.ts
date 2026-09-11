@@ -11,6 +11,9 @@ export interface Exercise {
   defaultDuration?: number;
   durationUnit?: 'min' | 'sec';
   defaultDistance?: number;
+  gtgEnabled: boolean;
+  gtgMinIntervalMinutes: number;
+  gtgMaxSetsPerDay: number;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;

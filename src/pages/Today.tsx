@@ -4,6 +4,7 @@ import { getOrCreateTodaySession, getTodaySessions } from '../db/sessions';
 import { addSet, getSetsBySession } from '../db/sets';
 import type { Exercise } from '../models/Exercise';
 import type { WorkoutSet } from '../models/WorkoutSet';
+import GtgStatus from '../components/GtgStatus';
 import './Today.css';
 
 interface SetWithExercise extends WorkoutSet {
@@ -134,6 +135,13 @@ export default function Today() {
             </button>
           ))}
         </div>
+      )}
+
+      {selectedExercise && (
+        <GtgStatus
+          exercise={selectedExercise}
+          todaySets={allTodaySets.filter(s => s.exerciseName === selectedExercise.name)}
+        />
       )}
 
       {selectedExercise && (

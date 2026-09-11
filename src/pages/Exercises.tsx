@@ -22,6 +22,9 @@ function ExerciseForm({
   defaultDuration, setDefaultDuration,
   durationUnit, setDurationUnit,
   defaultDistance, setDefaultDistance,
+  gtgEnabled, setGtgEnabled,
+  gtgMinInterval, setGtgMinInterval,
+  gtgMaxSets, setGtgMaxSets,
   nameEditable,
   onSave,
   onCancel,
@@ -36,6 +39,9 @@ function ExerciseForm({
   defaultDuration: number; setDefaultDuration: (v: number) => void;
   durationUnit: 'min' | 'sec'; setDurationUnit: (v: 'min' | 'sec') => void;
   defaultDistance: number; setDefaultDistance: (v: number) => void;
+  gtgEnabled: boolean; setGtgEnabled: (v: boolean) => void;
+  gtgMinInterval: number; setGtgMinInterval: (v: number) => void;
+  gtgMaxSets: number; setGtgMaxSets: (v: number) => void;
   nameEditable: boolean;
   onSave: () => void;
   onCancel: () => void;
@@ -104,6 +110,28 @@ function ExerciseForm({
         Supports added weight
       </label>
 
+      <div className="form-section-divider" />
+
+      <label className="field-label checkbox-label">
+        <input type="checkbox" checked={gtgEnabled} onChange={e => setGtgEnabled(e.target.checked)} />
+        Enable GTG protocol
+      </label>
+
+      {gtgEnabled && (
+        <>
+          <div className="default-value-row">
+            <label className="field-label">Min interval (min)</label>
+            <input type="number" className="field-input field-input--small" min={1}
+              value={gtgMinInterval} onChange={e => setGtgMinInterval(Number(e.target.value))} />
+          </div>
+          <div className="default-value-row">
+            <label className="field-label">Max sets/day</label>
+            <input type="number" className="field-input field-input--small" min={1}
+              value={gtgMaxSets} onChange={e => setGtgMaxSets(Number(e.target.value))} />
+          </div>
+        </>
+      )}
+
       <div className="form-actions">
         <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         <button className="btn-primary" onClick={onSave}>{saveLabel}</button>
@@ -128,6 +156,9 @@ export default function Exercises() {
   const [defaultDuration, setDefaultDuration] = useState(60);
   const [durationUnit, setDurationUnit] = useState<'min' | 'sec'>('sec');
   const [defaultDistance, setDefaultDistance] = useState(1);
+  const [gtgEnabled, setGtgEnabled] = useState(false);
+  const [gtgMinInterval, setGtgMinInterval] = useState(60);
+  const [gtgMaxSets, setGtgMaxSets] = useState(6);
 
   // Drag state
   const dragIndex = useRef<number | null>(null);
@@ -145,12 +176,16 @@ export default function Exercises() {
   function resetForm() {
     setName(''); setTrackingType('reps'); setSupportsWeight(false);
     setDefaultReps(5); setDefaultDuration(60); setDurationUnit('sec'); setDefaultDistance(1);
+    setGtgEnabled(false); setGtgMinInterval(60); setGtgMaxSets(6);
   }
 
   function populateForm(ex: Exercise) {
     setName(ex.name); setTrackingType(ex.trackingType); setSupportsWeight(ex.supportsWeight);
     setDefaultReps(ex.defaultReps ?? 5); setDefaultDuration(ex.defaultDuration ?? 60);
     setDurationUnit(ex.durationUnit ?? 'sec'); setDefaultDistance(ex.defaultDistance ?? 1);
+    setGtgEnabled(ex.gtgEnabled ?? false);
+    setGtgMinInterval(ex.gtgMinIntervalMinutes ?? 60);
+    setGtgMaxSets(ex.gtgMaxSetsPerDay ?? 6);
   }
 
   function buildPayload() {
@@ -165,6 +200,9 @@ export default function Exercises() {
       defaultDuration: trackingType === 'duration' ? defaultDuration : undefined,
       durationUnit: trackingType === 'duration' ? durationUnit : undefined,
       defaultDistance: trackingType === 'distance' ? defaultDistance : undefined,
+      gtgEnabled,
+      gtgMinIntervalMinutes: gtgMinInterval,
+      gtgMaxSetsPerDay: gtgMaxSets,
       updatedAt: now,
     };
   }
@@ -177,6 +215,9 @@ export default function Exercises() {
       category: 'strength',
       ...buildPayload(),
       sortOrder: exercises.length,
+      gtgEnabled,
+      gtgMinIntervalMinutes: gtgMinInterval,
+      gtgMaxSetsPerDay: gtgMaxSets,
       createdAt: now,
       updatedAt: now,
       archived: false,
@@ -281,6 +322,9 @@ export default function Exercises() {
     defaultDuration, setDefaultDuration,
     durationUnit, setDurationUnit,
     defaultDistance, setDefaultDistance,
+    gtgEnabled, setGtgEnabled,
+    gtgMinInterval, setGtgMinInterval,
+    gtgMaxSets, setGtgMaxSets,
   };
 
   return (

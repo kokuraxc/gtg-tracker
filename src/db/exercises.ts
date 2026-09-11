@@ -35,17 +35,20 @@ export async function seedDefaultExercises(): Promise<void> {
     {
       name: 'Pull-up', category: 'strength', trackingType: 'reps',
       supportsWeight: true, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 5, sortOrder: 0, createdAt: now, updatedAt: now, archived: false,
+      defaultReps: 5, gtgEnabled: true, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
+      sortOrder: 0, createdAt: now, updatedAt: now, archived: false,
     },
     {
       name: 'Push-up', category: 'strength', trackingType: 'reps',
       supportsWeight: false, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 20, sortOrder: 1, createdAt: now, updatedAt: now, archived: false,
+      defaultReps: 20, gtgEnabled: false, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
+      sortOrder: 1, createdAt: now, updatedAt: now, archived: false,
     },
     {
       name: 'Chin-up', category: 'strength', trackingType: 'reps',
       supportsWeight: true, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 5, sortOrder: 2, createdAt: now, updatedAt: now, archived: false,
+      defaultReps: 5, gtgEnabled: false, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
+      sortOrder: 2, createdAt: now, updatedAt: now, archived: false,
     },
   ];
 
