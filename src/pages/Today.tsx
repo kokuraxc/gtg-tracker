@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { getAllExercises } from '../db/exercises';
 import { getOrCreateTodaySession, getTodaySessions } from '../db/sessions';
 import { addSet, getSetsBySession, updateSet, deleteSet } from '../db/sets';
@@ -227,7 +228,7 @@ export default function Today() {
         <p className="no-sets">No sets logged yet today.</p>
       )}
 
-      {editingSet && (
+      {editingSet && createPortal(
         <div className="edit-set-overlay" onClick={() => setEditingSet(null)}>
           <div className="edit-set-sheet" onClick={e => e.stopPropagation()}>
             <div className="edit-set-title">Edit Set</div>
@@ -255,7 +256,7 @@ export default function Today() {
             )}
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 }
