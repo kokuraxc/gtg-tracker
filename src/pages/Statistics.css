@@ -60,3 +60,19 @@
   font-size: 0.8rem;
   color: #666;
 }
+
+.weekly-chart-card {
+  background: #f5f5f7;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-top: 1.25rem;
+}
+
+.weekly-chart-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
