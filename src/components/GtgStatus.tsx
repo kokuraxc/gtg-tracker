@@ -19,10 +19,13 @@ function formatDuration(totalSeconds: number): string {
 
 export default function GtgStatus({ exercise, todaySets }: Props) {
   const [now, setNow] = useState(Date.now());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
+    // Delay enabling transition so initial render skips animation
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => { clearInterval(timer); clearTimeout(t); };
   }, []);
 
   if (!exercise.gtgEnabled) return null;
@@ -85,7 +88,7 @@ export default function GtgStatus({ exercise, todaySets }: Props) {
       <div className={`gtg-readiness-bar`}>
         <div
           className="gtg-readiness-fill"
-          style={{
+          style={{ transition: mounted ? undefined : 'none',
             width: maxReached ? '100%'
               : secondsSinceLast === null ? '100%'
               : `${Math.min(100, (secondsSinceLast / intervalSeconds) * 100)}%`,
