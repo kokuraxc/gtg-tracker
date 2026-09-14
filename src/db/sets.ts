@@ -21,3 +21,11 @@ export async function getLastSet(sessionIds: number[]): Promise<WorkoutSet | und
   const sets = await db.sets.where('sessionId').anyOf(sessionIds).reverse().sortBy('timestamp');
   return sets[0];
 }
+
+export async function updateSet(id: number, changes: Partial<WorkoutSet>): Promise<void> {
+  await db.sets.update(id, changes);
+}
+
+export async function deleteSet(id: number): Promise<void> {
+  await db.sets.delete(id);
+}

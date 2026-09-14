@@ -173,3 +173,92 @@
   margin-top: 2rem;
   font-size: 0.9rem;
 }
+
+.set-item--tappable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.set-item--tappable:active {
+  background: #f0f0f5;
+  border-radius: 8px;
+}
+
+.set-edit-hint {
+  color: #bbb;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+/* Edit set bottom sheet */
+.edit-set-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.edit-set-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 480px;
+}
+
+.edit-set-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.edit-set-meta {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.edit-set-unit {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+}
+
+.edit-set-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.edit-set-cancel {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: none;
+  background: #e5e5ea;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.edit-set-delete {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  background: none;
+  color: #ff3b30;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+}

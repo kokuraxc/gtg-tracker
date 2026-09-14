@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAllExercises } from '../db/exercises';
 import { getOrCreateTodaySession, getTodaySessions } from '../db/sessions';
-import { addSet, getSetsBySession } from '../db/sets';
+import { addSet, getSetsBySession, updateSet, deleteSet } from '../db/sets';
 import type { Exercise } from '../models/Exercise';
 import type { WorkoutSet } from '../models/WorkoutSet';
 import GtgStatus from '../components/GtgStatus';
@@ -41,6 +41,8 @@ export default function Today() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [allTodaySets, setAllTodaySets] = useState<SetWithExercise[]>([]);
   const [justLogged, setJustLogged] = useState(false);
+  const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null);
+  const [editValue, setEditValue] = useState(0);
 
   const loadAllTodaySets = useCallback(async (exerciseList: Exercise[]) => {
     const sessions = await getTodaySessions();
@@ -95,6 +97,32 @@ export default function Today() {
     setSessionId(sid);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1500);
+  }
+
+  function openEditSet(s: SetWithExercise) {
+    setEditingSet(s);
+    if (s.trackingType === 'duration') setEditValue(s.duration ?? 0);
+    else if (s.trackingType === 'distance') setEditValue(s.distance ?? 0);
+    else setEditValue(s.reps ?? 0);
+  }
+
+  async function saveEditSet() {
+    if (!editingSet?.id) return;
+    const changes: Record<string, number> = {};
+    if (editingSet.trackingType === 'duration') changes.duration = editValue;
+    else if (editingSet.trackingType === 'distance') changes.distance = editValue;
+    else changes.reps = editValue;
+    await updateSet(editingSet.id, changes);
+    setEditingSet(null);
+    await loadAllTodaySets(exercises);
+  }
+
+  async function confirmDeleteSet() {
+    if (!editingSet?.id) return;
+    if (!confirm('Delete this set?')) return;
+    await deleteSet(editingSet.id);
+    setEditingSet(null);
+    await loadAllTodaySets(exercises);
   }
 
   const unit = selectedExercise ? getUnit(selectedExercise) : 'reps';
@@ -178,10 +206,11 @@ export default function Today() {
               )}
               <ul className="sets-list">
                 {exSets.map((s, i) => (
-                  <li key={s.id} className="set-item">
+                  <li key={s.id} className="set-item set-item--tappable" onClick={() => openEditSet(s)}>
                     <span className="set-number">Set {exSets.length - i}</span>
                     <span className="set-time">{formatTime(s.timestamp)}</span>
                     <span className="set-reps">{formatSetValue(s)}</span>
+                    <span className="set-edit-hint">✎</span>
                   </li>
                 ))}
               </ul>
@@ -192,6 +221,26 @@ export default function Today() {
 
       {allTodaySets.length === 0 && selectedExercise && (
         <p className="no-sets">No sets logged yet today.</p>
+      )}
+
+      {editingSet && (
+        <div className="edit-set-overlay" onClick={() => setEditingSet(null)}>
+          <div className="edit-set-sheet" onClick={e => e.stopPropagation()}>
+            <div className="edit-set-title">Edit Set</div>
+            <div className="edit-set-meta">{editingSet.exerciseName} · {formatTime(editingSet.timestamp)}</div>
+            <div className="rep-counter" style={{ margin: '1.25rem 0' }}>
+              <button className="rep-btn" onClick={() => setEditValue(v => Math.max(0, parseFloat((v - (editingSet.trackingType === 'distance' ? 0.1 : 1)).toFixed(1))))}>−</button>
+              <span className="rep-value">{editValue}</span>
+              <button className="rep-btn" onClick={() => setEditValue(v => parseFloat((v + (editingSet.trackingType === 'distance' ? 0.1 : 1)).toFixed(1)))}>+</button>
+            </div>
+            <div className="edit-set-unit">{getUnit({ trackingType: editingSet.trackingType, durationUnit: editingSet.durationUnit } as any)}</div>
+            <div className="edit-set-actions">
+              <button className="log-btn" onClick={saveEditSet}>Save</button>
+              <button className="edit-set-cancel" onClick={() => setEditingSet(null)}>Cancel</button>
+            </div>
+            <button className="edit-set-delete" onClick={confirmDeleteSet}>Delete set</button>
+          </div>
+        </div>
       )}
     </div>
   );
