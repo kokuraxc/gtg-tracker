@@ -208,6 +208,9 @@
   padding: 1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
   width: 100%;
   max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .edit-set-title {
