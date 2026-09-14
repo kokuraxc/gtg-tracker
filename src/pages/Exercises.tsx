@@ -10,6 +10,7 @@ function formatMeta(ex: Exercise) {
   if (ex.trackingType === 'duration' && ex.defaultDuration) parts.push(`${ex.defaultDuration} ${ex.durationUnit}`);
   if (ex.trackingType === 'distance' && ex.defaultDistance) parts.push(`${ex.defaultDistance} km`);
   if (ex.supportsWeight) parts.push('weighted');
+  if (ex.gtgEnabled) parts.push('GTG');
   return parts.join(' · ');
 }
 
