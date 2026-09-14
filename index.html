@@ -13,8 +13,17 @@
 
     <link rel="icon" type="image/png" sizes="192x192" href="/gtg-tracker/icons/icon-192.png" />
     <title>GTG Tracker</title>
-    <script type="module" crossorigin src="/gtg-tracker/assets/index-BOtTYjIm.js"></script>
-    <link rel="stylesheet" crossorigin href="/gtg-tracker/assets/index-QcNHxKoU.css">
+    <!-- Apply theme before React loads to avoid flash -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('gtg-theme');
+        if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        // 'system' or null: let CSS media query handle it
+      })();
+    </script>
+    <script type="module" crossorigin src="/gtg-tracker/assets/index-CKHY22RJ.js"></script>
+    <link rel="stylesheet" crossorigin href="/gtg-tracker/assets/index-CsrOHiDC.css">
   <link rel="manifest" href="/gtg-tracker/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/gtg-tracker/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
