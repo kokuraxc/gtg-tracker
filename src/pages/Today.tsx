@@ -168,12 +168,13 @@ export default function Today() {
         </div>
       )}
 
-      {selectedExercise && (
+      {exercises.filter(ex => ex.gtgEnabled).map(ex => (
         <GtgStatus
-          exercise={selectedExercise}
-          todaySets={allTodaySets.filter(s => s.exerciseName === selectedExercise.name)}
+          key={ex.id}
+          exercise={ex}
+          todaySets={allTodaySets.filter(s => s.exerciseName === ex.name)}
         />
-      )}
+      ))}
 
       {selectedExercise && (
         <div className="exercise-card">

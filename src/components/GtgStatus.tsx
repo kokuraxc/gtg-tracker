@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Exercise } from '../models/Exercise';
-import type { WorkoutSet } from '../models/WorkoutSet';
+import type { WorkoutSet } from '../models/WorkoutSet'; // used in Props
 import './GtgStatus.css';
 
 interface Props {
@@ -60,6 +60,7 @@ export default function GtgStatus({ exercise, todaySets }: Props) {
 
   return (
     <div className={`gtg-status ${statusClass}`}>
+      <div className="gtg-exercise-name">{exercise.name}</div>
       <div className="gtg-status-row">
         <div className="gtg-stat">
           <div className="gtg-stat-label">Sets today</div>
@@ -93,55 +94,6 @@ export default function GtgStatus({ exercise, todaySets }: Props) {
       </div>
 
       <div className="gtg-status-label">{statusText}</div>
-
-      {setsToday > 0 && <GtgSummary sets={todaySets} maxSets={gtgMaxSetsPerDay} />}
-    </div>
-  );
-}
-
-// ── Daily summary ─────────────────────────────────────────────
-function GtgSummary({ sets, maxSets }: { sets: WorkoutSet[]; maxSets: number }) {
-  const repSets = sets.filter(s => s.reps != null);
-  if (repSets.length === 0) return null;
-
-  const totalReps = repSets.reduce((sum, s) => sum + s.reps!, 0);
-  const bestSet = Math.max(...repSets.map(s => s.reps!));
-  const avgReps = Math.round((totalReps / repSets.length) * 10) / 10;
-
-  const first = new Date(sets.reduce((a, b) =>
-    new Date(a.timestamp) < new Date(b.timestamp) ? a : b).timestamp);
-  const last = new Date(sets.reduce((a, b) =>
-    new Date(a.timestamp) > new Date(b.timestamp) ? a : b).timestamp);
-  const spanMinutes = Math.round((last.getTime() - first.getTime()) / 60000);
-
-  const completionPct = Math.round((sets.length / maxSets) * 100);
-
-  return (
-    <div className="gtg-summary">
-      <div className="gtg-summary-title">Today's summary</div>
-      <div className="gtg-summary-grid">
-        <div className="gtg-summary-item">
-          <span className="gtg-summary-val">{totalReps}</span>
-          <span className="gtg-summary-lbl">total reps</span>
-        </div>
-        <div className="gtg-summary-item">
-          <span className="gtg-summary-val">{bestSet}</span>
-          <span className="gtg-summary-lbl">best set</span>
-        </div>
-        <div className="gtg-summary-item">
-          <span className="gtg-summary-val">{avgReps}</span>
-          <span className="gtg-summary-lbl">avg reps</span>
-        </div>
-        <div className="gtg-summary-item">
-          <span className="gtg-summary-val">{completionPct}%</span>
-          <span className="gtg-summary-lbl">of target</span>
-        </div>
-      </div>
-      {sets.length > 1 && (
-        <div className="gtg-summary-span">
-          Training span: {spanMinutes} min
-        </div>
-      )}
     </div>
   );
 }
