@@ -12,11 +12,11 @@
 .exercise-tab {
   padding: 0.4rem 0.9rem;
   border-radius: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   background: none;
   font-size: 0.9rem;
   cursor: pointer;
-  color: #555;
+  color: var(--text-2);
 }
 
 .exercise-tab--active {
@@ -32,7 +32,7 @@
 }
 
 .exercise-card {
-  background: #f5f5f7;
+  background: var(--bg-surface);
   border-radius: 16px;
   padding: 1.5rem;
   text-align: center;
@@ -45,7 +45,7 @@
 }
 
 .exercise-target {
-  color: #555;
+  color: var(--text-2);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
@@ -63,7 +63,7 @@
   height: 52px;
   border-radius: 50%;
   border: 2px solid #007aff;
-  background: #fff;
+  background: var(--bg);
   color: #007aff;
   font-size: 1.5rem;
   font-weight: 700;
@@ -75,7 +75,7 @@
 }
 
 .rep-btn:active {
-  background: #e5f0ff;
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
 }
 
 .rep-value {
@@ -100,7 +100,7 @@
 }
 
 .log-btn:active {
-  background: #0062cc;
+  background: #0055cc;
 }
 
 .log-btn--success {
@@ -132,7 +132,7 @@
 .sets-exercise-label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #888;
+  color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0.75rem 0 0.25rem;
@@ -148,13 +148,13 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-light);
   gap: 0.5rem;
 }
 
 .set-number {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-3);
   width: 3rem;
 }
 
@@ -168,7 +168,7 @@
 }
 
 .no-sets {
-  color: #999;
+  color: var(--text-4);
   text-align: center;
   margin-top: 2rem;
   font-size: 0.9rem;
@@ -186,7 +186,7 @@
 }
 
 .set-edit-hint {
-  color: #bbb;
+  color: var(--border);
   font-size: 0.85rem;
   margin-left: 0.5rem;
 }
@@ -203,7 +203,7 @@
 }
 
 .edit-set-sheet {
-  background: #fff;
+  background: var(--bg);
   border-radius: 20px 20px 0 0;
   padding: 1.5rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
   width: 100%;
@@ -218,14 +218,14 @@
 
 .edit-set-meta {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-3);
   margin-bottom: 0.5rem;
 }
 
 .edit-set-unit {
   text-align: center;
   font-size: 0.9rem;
-  color: #888;
+  color: var(--text-3);
   margin-top: -0.75rem;
   margin-bottom: 1rem;
 }
@@ -241,8 +241,8 @@
   padding: 0.75rem;
   border-radius: 10px;
   border: none;
-  background: #e5e5ea;
-  color: #333;
+  background: var(--bg-surface-2);
+  color: var(--text);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;

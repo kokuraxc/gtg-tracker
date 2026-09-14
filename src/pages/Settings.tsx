@@ -3,6 +3,14 @@ import { db } from '../db/database';
 import './Settings.css';
 
 type Status = { type: 'success' | 'error'; message: string } | null;
+type Theme = 'system' | 'light' | 'dark';
+
+function applyTheme(t: Theme) {
+  if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  localStorage.setItem('gtg-theme', t);
+}
 
 export default function Settings() {
   const [defaultReps, setDefaultReps] = useState(5);
@@ -10,6 +18,14 @@ export default function Settings() {
   const [maxSets, setMaxSets] = useState(6);
   const [reminders, setReminders] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem('gtg-theme') as Theme) ?? 'system'
+  );
+
+  function handleTheme(t: Theme) {
+    setTheme(t);
+    applyTheme(t);
+  }
   const importRef = useRef<HTMLInputElement>(null);
 
   function showStatus(type: 'success' | 'error', message: string) {
@@ -93,6 +109,23 @@ export default function Settings() {
   return (
     <div className="settings">
       <h2 className="settings-title">Settings</h2>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Appearance</div>
+        <div className="setting-row">
+          <label className="setting-label">Theme</label>
+          <div className="unit-toggle">
+            {(['system', 'light', 'dark'] as Theme[]).map(t => (
+              <button
+                key={t}
+                className={`unit-btn${theme === t ? ' unit-btn--active' : ''}`}
+                onClick={() => handleTheme(t)}
+                style={{ textTransform: 'capitalize' }}
+              >{t}</button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="settings-section">
         <div className="settings-section-title">GTG</div>

@@ -13,6 +13,15 @@
 
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <title>GTG Tracker</title>
+    <!-- Apply theme before React loads to avoid flash -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('gtg-theme');
+        if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        // 'system' or null: let CSS media query handle it
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

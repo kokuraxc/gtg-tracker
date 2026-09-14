@@ -3,7 +3,7 @@
 }
 
 .loading, .no-history {
-  color: #999;
+  color: var(--text-4);
   text-align: center;
   margin-top: 2rem;
   font-size: 0.9rem;
@@ -21,7 +21,7 @@
 .history-date {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #888;
+  color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
@@ -30,7 +30,7 @@
 .history-session {
   display: block;
   width: 100%;
-  background: #f5f5f7;
+  background: var(--bg-surface);
   border-radius: 12px;
   padding: 0.9rem 1rem;
   margin-bottom: 0.5rem;
@@ -40,7 +40,7 @@
 }
 
 .history-session:active {
-  background: #e8e8ed;
+  background: var(--bg-surface-2);
 }
 
 .history-exercise {
@@ -50,7 +50,7 @@
 
 .history-detail {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--text-2);
 }
 
 /* Detail view */
@@ -65,7 +65,7 @@
 }
 
 .detail-date {
-  color: #888;
+  color: var(--text-3);
   font-size: 0.9rem;
   margin: -0.5rem 0 1rem;
 }
@@ -85,13 +85,13 @@
   display: flex;
   align-items: center;
   padding: 0.7rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-light);
   gap: 0.5rem;
 }
 
 .set-num {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-3);
   width: 3.5rem;
 }
 
@@ -102,5 +102,5 @@
 
 .set-t {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-3);
 }

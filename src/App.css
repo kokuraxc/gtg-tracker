@@ -17,10 +17,10 @@
   left: 0;
   right: 0;
   display: flex;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--nav-bg);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
   /* centre within max-width on wide screens */
   max-width: 480px;
@@ -37,8 +37,8 @@
     left: 0;
     right: 0;
     height: calc(3.5rem + env(safe-area-inset-bottom));
-    background: rgba(255,255,255,0.92);
-    border-top: 1px solid #ddd;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
     z-index: -1;
   }
 }
@@ -51,7 +51,7 @@
   background: none;
   font-size: 0.8rem;
   cursor: pointer;
-  color: #555;
+  color: var(--text-3);
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
   display: flex;
