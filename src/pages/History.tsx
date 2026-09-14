@@ -218,7 +218,10 @@ export default function History() {
       });
     }
 
-    setDays(Object.values(grouped));
+    const sorted = Object.entries(grouped)
+      .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+      .map(([, v]) => v);
+    setDays(sorted);
     setLoading(false);
   }
 
