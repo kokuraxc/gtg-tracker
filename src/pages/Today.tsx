@@ -93,6 +93,7 @@ export default function Today() {
     else if (selectedExercise.trackingType === 'distance') setData.distance = value;
 
     await addSet(setData);
+    navigator.vibrate?.(50);
     await loadAllTodaySets(exercises);
     setSessionId(sid);
     setJustLogged(true);
