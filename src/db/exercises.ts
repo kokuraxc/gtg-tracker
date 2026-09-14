@@ -27,8 +27,10 @@ export async function saveExerciseOrder(ordered: Exercise[]): Promise<void> {
 }
 
 export async function seedDefaultExercises(): Promise<void> {
+  // Only seed once — never re-seed after user deletes data
+  if (localStorage.getItem('gtg-seeded') === '1') return;
   const count = await db.exercises.count();
-  if (count > 0) return;
+  if (count > 0) { localStorage.setItem('gtg-seeded', '1'); return; }
 
   const now = new Date();
   const defaults: Omit<Exercise, 'id'>[] = [
@@ -53,4 +55,5 @@ export async function seedDefaultExercises(): Promise<void> {
   ];
 
   await db.exercises.bulkAdd(defaults as Exercise[]);
+  localStorage.setItem('gtg-seeded', '1');
 }

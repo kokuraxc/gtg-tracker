@@ -8,42 +8,35 @@ import './App.css';
 
 type Page = 'today' | 'exercises' | 'history' | 'statistics' | 'settings';
 
+const NAV: { id: Page; label: string; icon: string }[] = [
+  { id: 'today',      label: 'Today',     icon: '🏋️' },
+  { id: 'exercises',  label: 'Exercises', icon: '📋' },
+  { id: 'history',    label: 'History',   icon: '📅' },
+  { id: 'statistics', label: 'Stats',     icon: '📊' },
+  { id: 'settings',   label: 'Settings',  icon: '⚙️' },
+];
+
 export default function App() {
   const [page, setPage] = useState<Page>('today');
 
-  const nav: { id: Page; label: string }[] = [
-    { id: 'today', label: 'Today' },
-    { id: 'exercises', label: 'Exercises' },
-    { id: 'history', label: 'History' },
-    { id: 'statistics', label: 'Stats' },
-    { id: 'settings', label: 'Settings' },
-  ];
-
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <main style={{ padding: '1rem' }}>
-        {page === 'today' && <Today />}
-        {page === 'exercises' && <Exercises />}
-        {page === 'history' && <History />}
+    <div className="app-shell">
+      <main className="app-main">
+        {page === 'today'      && <Today />}
+        {page === 'exercises'  && <Exercises />}
+        {page === 'history'    && <History />}
         {page === 'statistics' && <Statistics />}
-        {page === 'settings' && <Settings />}
+        {page === 'settings'   && <Settings />}
       </main>
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        display: 'flex', background: '#fff', borderTop: '1px solid #ddd',
-        maxWidth: 480, margin: '0 auto',
-      }}>
-        {nav.map(n => (
+      <div className="app-nav-backdrop" />
+      <nav className="app-nav">
+        {NAV.map(n => (
           <button
             key={n.id}
+            className={`app-nav-btn${page === n.id ? ' app-nav-btn--active' : ''}`}
             onClick={() => setPage(n.id)}
-            style={{
-              flex: 1, padding: '0.75rem 0', border: 'none', background: 'none',
-              fontWeight: page === n.id ? 'bold' : 'normal',
-              color: page === n.id ? '#007aff' : '#555',
-              cursor: 'pointer', fontSize: '0.8rem',
-            }}
           >
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{n.icon}</span>
             {n.label}
           </button>
         ))}

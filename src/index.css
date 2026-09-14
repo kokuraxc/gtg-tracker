@@ -9,6 +9,12 @@ html, body {
   background: #fff;
   color: #1c1c1e;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
 }
 
 button {

@@ -1,4 +1,67 @@
-nav button {
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.app-main {
+  padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(4rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #ddd;
+  padding-bottom: env(safe-area-inset-bottom);
+  /* centre within max-width on wide screens */
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  /* but on narrow screens stretch full width */
+}
+
+/* full-bleed white behind safe area on wide screens */
+@media (min-width: 480px) {
+  .app-nav-backdrop {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(3.5rem + env(safe-area-inset-bottom));
+    background: rgba(255,255,255,0.92);
+    border-top: 1px solid #ddd;
+    z-index: -1;
+  }
+}
+
+.app-nav-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 0.55rem 0;
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #555;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.app-nav-btn--active {
+  color: #007aff;
+  font-weight: 600;
 }
