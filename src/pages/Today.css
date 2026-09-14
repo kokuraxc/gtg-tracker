@@ -262,3 +262,34 @@
   font-family: inherit;
   text-align: center;
 }
+
+.edit-set-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.edit-set-confirm span {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.edit-set-confirm-btns {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.edit-set-confirm-yes {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent-red);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}

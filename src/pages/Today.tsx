@@ -43,6 +43,7 @@ export default function Today() {
   const [justLogged, setJustLogged] = useState(false);
   const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null);
   const [editValue, setEditValue] = useState(0);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const loadAllTodaySets = useCallback(async (exerciseList: Exercise[]) => {
     const sessions = await getTodaySessions();
@@ -101,6 +102,7 @@ export default function Today() {
   }
 
   function openEditSet(s: SetWithExercise) {
+    setConfirmingDelete(false);
     setEditingSet(s);
     if (s.trackingType === 'duration') setEditValue(s.duration ?? 0);
     else if (s.trackingType === 'distance') setEditValue(s.distance ?? 0);
@@ -118,11 +120,11 @@ export default function Today() {
     await loadAllTodaySets(exercises);
   }
 
-  async function confirmDeleteSet() {
+  async function doDeleteSet() {
     if (!editingSet?.id) return;
-    if (!confirm('Delete this set?')) return;
     await deleteSet(editingSet.id);
     setEditingSet(null);
+    setConfirmingDelete(false);
     await loadAllTodaySets(exercises);
   }
 
@@ -239,7 +241,17 @@ export default function Today() {
               <button className="log-btn" onClick={saveEditSet}>Save</button>
               <button className="edit-set-cancel" onClick={() => setEditingSet(null)}>Cancel</button>
             </div>
-            <button className="edit-set-delete" onClick={confirmDeleteSet}>Delete set</button>
+            {confirmingDelete ? (
+              <div className="edit-set-confirm">
+                <span>Delete this set?</span>
+                <div className="edit-set-confirm-btns">
+                  <button className="edit-set-confirm-yes" onClick={doDeleteSet}>Delete</button>
+                  <button className="edit-set-cancel" onClick={() => setConfirmingDelete(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button className="edit-set-delete" onClick={() => setConfirmingDelete(true)}>Delete set</button>
+            )}
           </div>
         </div>
       )}
