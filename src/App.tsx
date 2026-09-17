@@ -2,18 +2,16 @@ import { useState } from 'react';
 import Today from './pages/Today';
 import Exercises from './pages/Exercises';
 import History from './pages/History';
-import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import './App.css';
 
-type Page = 'today' | 'exercises' | 'history' | 'statistics' | 'settings';
+type Page = 'today' | 'exercises' | 'history' | 'settings';
 
 const NAV: { id: Page; label: string; icon: string }[] = [
-  { id: 'today',      label: 'Today',     icon: '🏋️' },
-  { id: 'exercises',  label: 'Exercises', icon: '📋' },
-  { id: 'history',    label: 'History',   icon: '📅' },
-  { id: 'statistics', label: 'Stats',     icon: '📊' },
-  { id: 'settings',   label: 'Settings',  icon: '⚙️' },
+  { id: 'today',     label: 'Today',     icon: '🏋️' },
+  { id: 'exercises', label: 'Exercises', icon: '📋' },
+  { id: 'history',   label: 'History',   icon: '📊' },
+  { id: 'settings',  label: 'Settings',  icon: '⚙️' },
 ];
 
 export default function App() {
@@ -22,11 +20,10 @@ export default function App() {
   return (
     <div className="app-shell">
       <main className="app-main">
-        {page === 'today'      && <Today />}
-        {page === 'exercises'  && <Exercises />}
-        {page === 'history'    && <History />}
-        {page === 'statistics' && <Statistics />}
-        {page === 'settings'   && <Settings />}
+        {page === 'today'     && <Today />}
+        {page === 'exercises' && <Exercises />}
+        {page === 'history'   && <History />}
+        {page === 'settings'  && <Settings />}
       </main>
       <div className="app-nav-backdrop" />
       <nav className="app-nav">

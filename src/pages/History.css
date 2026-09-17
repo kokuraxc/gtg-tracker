@@ -104,3 +104,12 @@
   font-size: 0.85rem;
   color: var(--text-3);
 }
+
+.history-log-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.5rem 0 0.75rem;
+}
