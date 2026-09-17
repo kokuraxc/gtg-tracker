@@ -56,15 +56,24 @@
 /* ── Log Controls ─────────────────────────────────────── */
 
 .ex-card-log {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-top: 0.75rem;
-  text-align: center;
 }
 
-.ex-card-unit {
+.rep-value-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  min-width: 4rem;
+  justify-content: center;
+}
+
+.rep-unit {
   font-size: 0.85rem;
   color: var(--text-2);
-  margin-bottom: 0.75rem;
-  margin-top: -0.5rem;
+  font-weight: 400;
 }
 
 .rep-counter {
@@ -103,7 +112,7 @@
 }
 
 .log-btn {
-  width: 100%;
+  flex: 1;
   padding: 1rem;
   border-radius: 12px;
   border: none;

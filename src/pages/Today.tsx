@@ -136,20 +136,22 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
         <GtgStatus exercise={exercise} todaySets={todaySets} compact />
       )}
 
-      {/* Rep Counter + Log Button */}
+      {/* Rep Counter + Log Button — same row */}
       <div className="ex-card-log">
         <div className="rep-counter">
           <button
             className="rep-btn"
             onClick={() => setValue(v => Math.max(minValue, parseFloat((v - step).toFixed(1))))}
           >−</button>
-          <span className="rep-value">{value}</span>
+          <span className="rep-value-group">
+            <span className="rep-value">{value}</span>
+            <span className="rep-unit">{unit}</span>
+          </span>
           <button
             className="rep-btn"
             onClick={() => setValue(v => parseFloat((v + step).toFixed(1)))}
           >+</button>
         </div>
-        <div className="ex-card-unit">{unit}</div>
         <button
           className={`log-btn ${justLogged ? 'log-btn--success' : ''}`}
           onClick={logSet}
