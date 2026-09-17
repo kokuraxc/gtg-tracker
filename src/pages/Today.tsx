@@ -49,6 +49,7 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
   const [value, setValue] = useState(getDefaultValue(exercise));
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [justLogged, setJustLogged] = useState(false);
+  const [showSets, setShowSets] = useState(false);
   const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null);
   const [editValue, setEditValue] = useState(0);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -73,6 +74,7 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
     navigator.vibrate?.(50);
     await onRefresh();
     setSessionId(sid);
+    setShowSets(true);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1500);
   }
@@ -119,7 +121,14 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
       {/* Card Header */}
       <div className="ex-card-header">
         <span className="ex-card-name">{exercise.name}</span>
-        {summaryText ? <span className="ex-card-summary">{summaryText}</span> : null}
+        {summaryText ? (
+          <button
+            className={`ex-card-summary-btn${showSets ? ' ex-card-summary-btn--open' : ''}`}
+            onClick={() => setShowSets(v => !v)}
+          >
+            {summaryText} <span className="ex-card-chevron">▾</span>
+          </button>
+        ) : null}
       </div>
 
       {/* GTG Status — compact (no title, since card header has the name) */}
@@ -149,8 +158,8 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
         </button>
       </div>
 
-      {/* Today's Sets */}
-      {todaySets.length > 0 && (
+      {/* Today's Sets — toggled by summary button */}
+      {todaySets.length > 0 && showSets && (
         <div className="ex-card-sets">
           <ul className="sets-list">
             {todaySets.map((s, i) => (
