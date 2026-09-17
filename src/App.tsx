@@ -9,8 +9,8 @@ type Page = 'today' | 'exercises' | 'history' | 'settings';
 
 const NAV: { id: Page; label: string; icon: string }[] = [
   { id: 'today',     label: 'Today',     icon: '🏋️' },
-  { id: 'exercises', label: 'Exercises', icon: '📋' },
   { id: 'history',   label: 'History',   icon: '📊' },
+  { id: 'exercises', label: 'Exercises', icon: '📋' },
   { id: 'settings',  label: 'Settings',  icon: '⚙️' },
 ];
 
