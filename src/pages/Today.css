@@ -2,52 +2,52 @@
   padding-bottom: 5rem;
 }
 
-.exercise-selector {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.exercise-tab {
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  border: 1px solid var(--border-input);
-  background: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  color: var(--text-2);
-}
-
-.exercise-tab--active {
-  background: #007aff;
-  color: #fff;
-  border-color: #007aff;
-  font-weight: 600;
-}
-
 .today-title {
   font-size: 1.5rem;
   margin: 0 0 1rem;
 }
 
-.exercise-card {
+/* ── Exercise Card ────────────────────────────────────── */
+
+.ex-card {
   background: var(--bg-surface);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.ex-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ex-card-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.ex-card-summary {
+  font-size: 0.85rem;
+  color: #007aff;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* ── Log Controls ─────────────────────────────────────── */
+
+.ex-card-log {
+  margin-top: 0.75rem;
   text-align: center;
 }
 
-.exercise-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.exercise-target {
+.ex-card-unit {
+  font-size: 0.85rem;
   color: var(--text-2);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: -0.5rem;
 }
 
 .rep-counter {
@@ -55,7 +55,7 @@
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .rep-btn {
@@ -107,35 +107,12 @@
   background: #34c759;
 }
 
-.sets-section {
-  margin-top: 1.5rem;
-}
+/* ── Today's Sets (inline in card) ───────────────────── */
 
-.sets-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.sets-summary {
-  font-size: 0.85rem;
-  color: #007aff;
-  font-weight: 400;
-}
-
-.sets-exercise-group {
-  margin-bottom: 0.5rem;
-}
-
-.sets-exercise-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0.75rem 0 0.25rem;
+.ex-card-sets {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.5rem;
 }
 
 .sets-list {
@@ -147,9 +124,13 @@
 .set-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 0;
+  padding: 0.65rem 0;
   border-bottom: 1px solid var(--border-light);
   gap: 0.5rem;
+}
+
+.set-item:last-child {
+  border-bottom: none;
 }
 
 .set-number {
@@ -167,21 +148,12 @@
   font-weight: 600;
 }
 
-.no-sets {
-  color: var(--text-4);
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 0.9rem;
-}
-
 .set-item--tappable {
   cursor: pointer;
-  display: flex;
-  align-items: center;
 }
 
 .set-item--tappable:active {
-  background: #f0f0f5;
+  background: var(--bg-surface-2);
   border-radius: 8px;
 }
 
@@ -191,7 +163,15 @@
   margin-left: 0.5rem;
 }
 
-/* Edit set bottom sheet */
+.no-sets {
+  color: var(--text-4);
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+}
+
+/* ── Edit Set bottom sheet ────────────────────────────── */
+
 .edit-set-overlay {
   position: fixed;
   inset: 0;

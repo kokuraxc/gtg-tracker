@@ -35,68 +35,43 @@ function getUnit(ex: Exercise): string {
   return 'reps';
 }
 
-export default function Today() {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
-  const [value, setValue] = useState(5);
+function formatTime(date: Date) {
+  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+interface ExerciseCardProps {
+  exercise: Exercise;
+  todaySets: SetWithExercise[];
+  onRefresh: () => Promise<void>;
+}
+
+function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
+  const [value, setValue] = useState(getDefaultValue(exercise));
   const [sessionId, setSessionId] = useState<number | null>(null);
-  const [allTodaySets, setAllTodaySets] = useState<SetWithExercise[]>([]);
   const [justLogged, setJustLogged] = useState(false);
   const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null);
   const [editValue, setEditValue] = useState(0);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const loadAllTodaySets = useCallback(async (exerciseList: Exercise[]) => {
-    const sessions = await getTodaySessions();
-    const result: SetWithExercise[] = [];
-    for (const session of sessions) {
-      const exercise = exerciseList.find(ex => ex.id === session.exerciseId);
-      const sets = await getSetsBySession(session.id!);
-      for (const set of sets) {
-        result.push({
-          ...set,
-          exerciseName: exercise?.name ?? 'Unknown',
-          trackingType: exercise?.trackingType ?? 'reps',
-          durationUnit: exercise?.durationUnit,
-        });
-      }
-    }
-    result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    setAllTodaySets(result);
-  }, []);
-
-  useEffect(() => {
-    getAllExercises().then(list => {
-      setExercises(list);
-      if (list.length > 0) selectExercise(list[0], list);
-    });
-  }, []);
-
-  async function selectExercise(ex: Exercise, exerciseList?: Exercise[]) {
-    setSelectedExercise(ex);
-    setValue(getDefaultValue(ex));
-    setSessionId(null); // reset; session created lazily on first log
-    await loadAllTodaySets(exerciseList ?? exercises);
-  }
+  const unit = getUnit(exercise);
+  const step = exercise.trackingType === 'distance' ? 0.1 : 1;
+  const minValue = exercise.trackingType === 'distance' ? 0.1 : 1;
 
   async function logSet() {
-    if (!selectedExercise) return;
-    // Lazily create session on first set log — avoids duplicate empty sessions
-    const sid = sessionId ?? await getOrCreateTodaySession(selectedExercise.id!);
+    const sid = sessionId ?? await getOrCreateTodaySession(exercise.id!);
     setSessionId(sid);
-    const sessionSets = allTodaySets.filter(s => s.exerciseName === selectedExercise.name);
     const setData: Omit<WorkoutSet, 'id'> = {
       sessionId: sid,
-      setNumber: sessionSets.length + 1,
+      setNumber: todaySets.length + 1,
       timestamp: new Date(),
     };
-    if (selectedExercise.trackingType === 'reps') setData.reps = value;
-    else if (selectedExercise.trackingType === 'duration') setData.duration = value;
-    else if (selectedExercise.trackingType === 'distance') setData.distance = value;
+    if (exercise.trackingType === 'reps') setData.reps = value;
+    else if (exercise.trackingType === 'duration') setData.duration = value;
+    else if (exercise.trackingType === 'distance') setData.distance = value;
 
     await addSet(setData);
     navigator.vibrate?.(50);
-    await loadAllTodaySets(exercises);
+    await onRefresh();
     setSessionId(sid);
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1500);
@@ -118,7 +93,7 @@ export default function Today() {
     else changes.reps = editValue;
     await updateSet(editingSet.id, changes);
     setEditingSet(null);
-    await loadAllTodaySets(exercises);
+    await onRefresh();
   }
 
   async function doDeleteSet() {
@@ -126,108 +101,71 @@ export default function Today() {
     await deleteSet(editingSet.id);
     setEditingSet(null);
     setConfirmingDelete(false);
-    await loadAllTodaySets(exercises);
+    await onRefresh();
   }
 
-  const unit = selectedExercise ? getUnit(selectedExercise) : 'reps';
-  const step = selectedExercise?.trackingType === 'distance' ? 0.1 : 1;
-  const minValue = selectedExercise?.trackingType === 'distance' ? 0.1 : 1;
-
-  // Summary line — only count reps exercises
-  const totalReps = allTodaySets
+  const repsTotal = todaySets
     .filter(s => s.trackingType === 'reps')
     .reduce((sum, s) => sum + (s.reps ?? 0), 0);
-  const summaryText = totalReps > 0
-    ? `${allTodaySets.length} sets · ${totalReps} reps`
-    : `${allTodaySets.length} sets`;
 
-  function formatTime(date: Date) {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  const setsByExercise = allTodaySets.reduce<Record<string, SetWithExercise[]>>((acc, s) => {
-    if (!acc[s.exerciseName]) acc[s.exerciseName] = [];
-    acc[s.exerciseName].push(s);
-    return acc;
-  }, {});
+  const summaryText = todaySets.length > 0
+    ? exercise.trackingType === 'reps'
+      ? `${todaySets.length} sets · ${repsTotal} reps`
+      : `${todaySets.length} sets`
+    : '';
 
   return (
-    <div className="today">
-      <h2 className="today-title">Today</h2>
+    <div className="ex-card">
+      {/* Card Header */}
+      <div className="ex-card-header">
+        <span className="ex-card-name">{exercise.name}</span>
+        {summaryText ? <span className="ex-card-summary">{summaryText}</span> : null}
+      </div>
 
-      {exercises.length > 1 && (
-        <div className="exercise-selector">
-          {exercises.map(ex => (
-            <button
-              key={ex.id}
-              className={`exercise-tab ${selectedExercise?.id === ex.id ? 'exercise-tab--active' : ''}`}
-              onClick={() => selectExercise(ex)}
-            >
-              {ex.name}
-            </button>
-          ))}
-        </div>
+      {/* GTG Status — compact (no title, since card header has the name) */}
+      {exercise.gtgEnabled && (
+        <GtgStatus exercise={exercise} todaySets={todaySets} compact />
       )}
 
-      {exercises.filter(ex => ex.gtgEnabled).map(ex => (
-        <GtgStatus
-          key={ex.id}
-          exercise={ex}
-          todaySets={allTodaySets.filter(s => s.exerciseName === ex.name)}
-        />
-      ))}
-
-      {selectedExercise && (
-        <div className="exercise-card">
-          <div className="exercise-name">{selectedExercise.name}</div>
-          <div className="exercise-target">Target: {value} {unit}</div>
-
-          <div className="rep-counter">
-            <button className="rep-btn" onClick={() => setValue(v => Math.max(minValue, parseFloat((v - step).toFixed(1))))}>−</button>
-            <span className="rep-value">{value}</span>
-            <button className="rep-btn" onClick={() => setValue(v => parseFloat((v + step).toFixed(1)))}>+</button>
-          </div>
-
+      {/* Rep Counter + Log Button */}
+      <div className="ex-card-log">
+        <div className="rep-counter">
           <button
-            className={`log-btn ${justLogged ? 'log-btn--success' : ''}`}
-            onClick={logSet}
-          >
-            {justLogged ? '✓ Logged!' : 'LOG SET'}
-          </button>
+            className="rep-btn"
+            onClick={() => setValue(v => Math.max(minValue, parseFloat((v - step).toFixed(1))))}
+          >−</button>
+          <span className="rep-value">{value}</span>
+          <button
+            className="rep-btn"
+            onClick={() => setValue(v => parseFloat((v + step).toFixed(1)))}
+          >+</button>
+        </div>
+        <div className="ex-card-unit">{unit}</div>
+        <button
+          className={`log-btn ${justLogged ? 'log-btn--success' : ''}`}
+          onClick={logSet}
+        >
+          {justLogged ? '✓ Logged!' : 'LOG SET'}
+        </button>
+      </div>
+
+      {/* Today's Sets */}
+      {todaySets.length > 0 && (
+        <div className="ex-card-sets">
+          <ul className="sets-list">
+            {todaySets.map((s, i) => (
+              <li key={s.id} className="set-item set-item--tappable" onClick={() => openEditSet(s)}>
+                <span className="set-number">Set {todaySets.length - i}</span>
+                <span className="set-time">{formatTime(s.timestamp)}</span>
+                <span className="set-reps">{formatSetValue(s)}</span>
+                <span className="set-edit-hint">✎</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {allTodaySets.length > 0 && (
-        <div className="sets-section">
-          <div className="sets-header">
-            <span>Today's sets</span>
-            <span className="sets-summary">{summaryText}</span>
-          </div>
-
-          {Object.entries(setsByExercise).map(([exerciseName, exSets]) => (
-            <div key={exerciseName} className="sets-exercise-group">
-              {Object.keys(setsByExercise).length > 1 && (
-                <div className="sets-exercise-label">{exerciseName}</div>
-              )}
-              <ul className="sets-list">
-                {exSets.map((s, i) => (
-                  <li key={s.id} className="set-item set-item--tappable" onClick={() => openEditSet(s)}>
-                    <span className="set-number">Set {exSets.length - i}</span>
-                    <span className="set-time">{formatTime(s.timestamp)}</span>
-                    <span className="set-reps">{formatSetValue(s)}</span>
-                    <span className="set-edit-hint">✎</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {allTodaySets.length === 0 && selectedExercise && (
-        <p className="no-sets">No sets logged yet today.</p>
-      )}
-
+      {/* Edit Set bottom sheet */}
       {editingSet && createPortal(
         <div className="edit-set-overlay" onClick={() => setEditingSet(null)}>
           <div className="edit-set-sheet" onClick={e => e.stopPropagation()}>
@@ -257,6 +195,59 @@ export default function Today() {
           </div>
         </div>
       , document.body)}
+    </div>
+  );
+}
+
+export default function Today() {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [allTodaySets, setAllTodaySets] = useState<SetWithExercise[]>([]);
+
+  const loadAllTodaySets = useCallback(async (exerciseList: Exercise[]) => {
+    const sessions = await getTodaySessions();
+    const result: SetWithExercise[] = [];
+    for (const session of sessions) {
+      const exercise = exerciseList.find(ex => ex.id === session.exerciseId);
+      const sets = await getSetsBySession(session.id!);
+      for (const set of sets) {
+        result.push({
+          ...set,
+          exerciseName: exercise?.name ?? 'Unknown',
+          trackingType: exercise?.trackingType ?? 'reps',
+          durationUnit: exercise?.durationUnit,
+        });
+      }
+    }
+    // newest first so set numbers render correctly inside each card
+    result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    setAllTodaySets(result);
+  }, []);
+
+  useEffect(() => {
+    getAllExercises().then(list => {
+      setExercises(list);
+      loadAllTodaySets(list);
+    });
+  }, [loadAllTodaySets]);
+
+  async function refreshSets() {
+    await loadAllTodaySets(exercises);
+  }
+
+  return (
+    <div className="today">
+      <h2 className="today-title">Today</h2>
+      {exercises.length === 0 && (
+        <p className="no-sets">No exercises yet — add some in the Exercises tab.</p>
+      )}
+      {exercises.map(ex => (
+        <ExerciseCard
+          key={ex.id}
+          exercise={ex}
+          todaySets={allTodaySets.filter(s => s.exerciseName === ex.name)}
+          onRefresh={refreshSets}
+        />
+      ))}
     </div>
   );
 }

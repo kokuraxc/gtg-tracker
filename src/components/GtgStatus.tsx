@@ -6,6 +6,7 @@ import './GtgStatus.css';
 interface Props {
   exercise: Exercise;
   todaySets: WorkoutSet[];
+  compact?: boolean;
 }
 
 function formatDuration(totalSeconds: number): string {
@@ -17,7 +18,7 @@ function formatDuration(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function GtgStatus({ exercise, todaySets }: Props) {
+export default function GtgStatus({ exercise, todaySets, compact }: Props) {
   const [now, setNow] = useState(Date.now());
   const [mounted, setMounted] = useState(false);
 
@@ -63,7 +64,7 @@ export default function GtgStatus({ exercise, todaySets }: Props) {
 
   return (
     <div className={`gtg-status ${statusClass}`}>
-      <div className="gtg-exercise-name">{exercise.name}</div>
+      {!compact && <div className="gtg-exercise-name">{exercise.name}</div>}
       <div className="gtg-status-row">
         <div className="gtg-stat">
           <div className="gtg-stat-label">Sets today</div>
