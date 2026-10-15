@@ -18,13 +18,15 @@ export default function App() {
   const [page, setPage] = useState<Page>('today');
 
   return (
-    <div className="app-shell">
-      <main className="app-main">
-        {page === 'today'     && <Today />}
-        {page === 'exercises' && <Exercises />}
-        {page === 'history'   && <History />}
-        {page === 'settings'  && <Settings />}
-      </main>
+    <>
+      <div className="app-shell">
+        <main className="app-main">
+          {page === 'today'     && <Today />}
+          {page === 'exercises' && <Exercises />}
+          {page === 'history'   && <History />}
+          {page === 'settings'  && <Settings />}
+        </main>
+      </div>
       <div className="app-nav-backdrop" />
       <nav className="app-nav">
         {NAV.map(n => (
@@ -38,6 +40,6 @@ export default function App() {
           </button>
         ))}
       </nav>
-    </div>
+    </>
   );
 }
