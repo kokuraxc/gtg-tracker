@@ -62,6 +62,25 @@ export default function GtgStatus({ exercise, todaySets, compact }: Props) {
     statusText = 'Rest time';
   }
 
+  // ── Compact single-line version (used inside Today cards) ────
+  if (compact) {
+    let line: string;
+    if (maxReached) {
+      line = `done for today · ${setsToday}/${gtgMaxSetsPerDay} sets`;
+    } else if (isReady) {
+      line = `ready · ${setsToday}/${gtgMaxSetsPerDay} sets`;
+    } else {
+      line = `next set in ${formatDuration(secondsUntilReady)} · ${setsToday}/${gtgMaxSetsPerDay} sets`;
+    }
+    return (
+      <div className={`gtg-compact ${statusClass}`}>
+        <span className="gtg-compact-dot" />
+        <span className="gtg-compact-text">{line}</span>
+      </div>
+    );
+  }
+
+  // ── Full version (used standalone, e.g. outside card) ─────────
   return (
     <div className={`gtg-status ${statusClass}`}>
       {!compact && <div className="gtg-exercise-name">{exercise.name}</div>}

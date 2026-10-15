@@ -39,6 +39,35 @@ function formatTime(date: Date) {
   return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function formatElapsed(seconds: number): string {
+  if (seconds < 60) return `${seconds}s ago`;
+  const m = Math.floor(seconds / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem > 0 ? `${h}h ${rem}m ago` : `${h}h ago`;
+}
+
+function LastSetTimer({ todaySets }: { todaySets: SetWithExercise[] }) {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (todaySets.length === 0) return null;
+
+  const last = todaySets.reduce((a, b) =>
+    new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b
+  );
+  const elapsed = Math.floor((now - new Date(last.timestamp).getTime()) / 1000);
+
+  return (
+    <div className="last-set-timer">Last set {formatElapsed(elapsed)}</div>
+  );
+}
+
 interface ExerciseCardProps {
   exercise: Exercise;
   todaySets: SetWithExercise[];
@@ -134,6 +163,11 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
       {/* GTG Status — compact (no title, since card header has the name) */}
       {exercise.gtgEnabled && (
         <GtgStatus exercise={exercise} todaySets={todaySets} compact />
+      )}
+
+      {/* Rest timer — non-GTG exercises only */}
+      {!exercise.gtgEnabled && (
+        <LastSetTimer todaySets={todaySets} />
       )}
 
       {/* Rep Counter + Log Button — same row */}
