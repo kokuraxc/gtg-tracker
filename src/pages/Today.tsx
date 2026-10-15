@@ -6,6 +6,7 @@ import { addSet, getSetsBySession, getAllSetsForExercise, updateSet, deleteSet }
 import type { Exercise } from '../models/Exercise';
 import type { WorkoutSet } from '../models/WorkoutSet';
 import GtgStatus from '../components/GtgStatus';
+import { scheduleGtgNotification, cancelGtgNotification } from '../services/notifications';
 import './Today.css';
 
 interface SetWithExercise extends WorkoutSet {
@@ -123,6 +124,21 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
     setIsPR(newPR);
     setJustLogged(true);
     setTimeout(() => { setJustLogged(false); setIsPR(false); }, 2000);
+
+    // Schedule GTG notification for the next set
+    if (exercise.gtgEnabled && exercise.id != null) {
+      const newSetsToday = todaySets.length + 1;
+      if (newSetsToday < exercise.gtgMaxSetsPerDay) {
+        scheduleGtgNotification(
+          exercise.id,
+          exercise.name,
+          exercise.gtgMinIntervalMinutes * 60 * 1000
+        );
+      } else {
+        // Max sets reached — cancel any lingering timer
+        cancelGtgNotification(exercise.id);
+      }
+    }
   }
 
   function openEditSet(s: SetWithExercise) {

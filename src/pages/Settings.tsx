@@ -1,5 +1,10 @@
 import { useState, useRef } from 'react';
 import { db } from '../db/database';
+import {
+  notificationsEnabled,
+  requestNotificationPermission,
+  disableNotifications,
+} from '../services/notifications';
 import './Settings.css';
 
 type Status = { type: 'success' | 'error'; message: string } | null;
@@ -16,7 +21,10 @@ export default function Settings() {
   const [defaultReps, setDefaultReps] = useState(5);
   const [gtgInterval, setGtgInterval] = useState(60);
   const [maxSets, setMaxSets] = useState(6);
-  const [reminders, setReminders] = useState(false);
+  const [reminders, setReminders] = useState(() => notificationsEnabled());
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    () => ('Notification' in window ? Notification.permission : 'denied')
+  );
   const [status, setStatus] = useState<Status>(null);
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem('gtg-theme') as Theme) ?? 'system'
@@ -196,9 +204,27 @@ export default function Settings() {
         </div>
 
         <div className="setting-row">
-          <label className="setting-label">Reminders</label>
-          <input type="checkbox" checked={reminders}
-            onChange={e => setReminders(e.target.checked)} />
+          <div>
+            <label className="setting-label">GTG reminders</label>
+            {notifPermission === 'denied' && (
+              <div className="setting-hint">Blocked by browser — enable in site settings.</div>
+            )}
+          </div>
+          <input
+            type="checkbox"
+            checked={reminders}
+            disabled={notifPermission === 'denied'}
+            onChange={async e => {
+              if (e.target.checked) {
+                const perm = await requestNotificationPermission();
+                setNotifPermission(perm);
+                setReminders(perm === 'granted');
+              } else {
+                disableNotifications();
+                setReminders(false);
+              }
+            }}
+          />
         </div>
       </div>
 

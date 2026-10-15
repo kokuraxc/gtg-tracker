@@ -32,6 +32,12 @@
   font-size: 0.95rem;
 }
 
+.setting-hint {
+  font-size: 0.78rem;
+  color: var(--accent-red);
+  margin-top: 0.2rem;
+}
+
 .setting-input {
   width: 70px;
   padding: 0.4rem 0.5rem;
