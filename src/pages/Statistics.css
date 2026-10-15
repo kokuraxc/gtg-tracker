@@ -20,9 +20,9 @@
 }
 
 .stats-tab--active {
-  background: #007aff;
+  background: var(--accent);
   color: #fff;
-  border-color: #007aff;
+  border-color: var(--accent);
   font-weight: 600;
 }
 

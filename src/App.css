@@ -63,6 +63,6 @@
 }
 
 .app-nav-btn--active {
-  color: #007aff;
+  color: var(--accent);
   font-weight: 600;
 }

@@ -34,7 +34,7 @@
   align-items: center;
   gap: 0.2rem;
   font-size: 0.85rem;
-  color: #007aff;
+  color: var(--accent);
   font-weight: 400;
   white-space: nowrap;
   background: none;
@@ -89,9 +89,9 @@
   height: 52px;
   min-width: 52px;
   border-radius: 50%;
-  border: 2px solid #007aff;
+  border: 2px solid var(--accent);
   background: var(--bg);
-  color: #007aff;
+  color: var(--accent);
   font-size: 1.5rem;
   font-weight: 700;
   cursor: pointer;
@@ -118,7 +118,7 @@
   padding: 1rem 0.5rem;
   border-radius: 12px;
   border: none;
-  background: #007aff;
+  background: var(--accent-orange);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -128,11 +128,11 @@
 }
 
 .log-btn:active {
-  background: #0055cc;
+  background: #c4623c;
 }
 
 .log-btn--success {
-  background: #34c759;
+  background: var(--accent-green);
 }
 
 /* ── Today's Sets (inline in card) ───────────────────── */
@@ -271,7 +271,7 @@
   padding: 0.75rem;
   border: none;
   background: none;
-  color: #ff3b30;
+  color: var(--accent-red);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;

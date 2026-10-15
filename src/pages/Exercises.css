@@ -82,10 +82,10 @@
 .add-exercise-btn {
   width: 100%;
   padding: 0.9rem;
-  border: 2px dashed #007aff;
+  border: 2px dashed var(--accent);
   border-radius: 12px;
   background: none;
-  color: #007aff;
+  color: var(--accent);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -163,7 +163,7 @@
 }
 
 .unit-btn--active {
-  background: #007aff;
+  background: var(--accent);
   color: #fff;
   font-weight: 600;
 }
@@ -213,7 +213,7 @@
 }
 
 .btn-primary {
-  background: #007aff;
+  background: var(--accent);
   color: #fff;
 }
 
@@ -230,7 +230,7 @@
   border-radius: 10px;
   border: none;
   background: none;
-  color: #ff3b30;
+  color: var(--accent-red);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;

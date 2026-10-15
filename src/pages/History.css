@@ -57,7 +57,7 @@
 .back-btn {
   background: none;
   border: none;
-  color: #007aff;
+  color: var(--accent);
   font-size: 0.95rem;
   cursor: pointer;
   padding: 0 0 0.75rem;

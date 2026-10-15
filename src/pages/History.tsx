@@ -43,7 +43,7 @@ function WeeklyChart({ days, targetReps }: { days: DayTotal[]; targetReps?: numb
         const bH = Math.max(2, (d.reps/maxVal)*chartH);
         const x = padL + i*gap + (gap-barW)/2;
         const y = padT+chartH-bH;
-        const col = d.isToday ? 'var(--accent)' : d.reps === 0 ? 'var(--bg-surface-2)' : '#5ac8fa';
+        const col = d.isToday ? 'var(--accent)' : d.reps === 0 ? 'var(--bg-surface-2)' : 'var(--accent-orange)';
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={bH} rx={3} fill={col} />
@@ -118,10 +118,10 @@ function SetChart({ sets, exercise }: { sets: WorkoutSet[]; exercise: Exercise }
       })}
       {sets.map((s, i) => {
         const v = getValue(s); const x = xPos(new Date(s.timestamp)); const bH = (v/maxY)*chartH;
-        return <g key={s.id ?? i}><rect x={x-barW/2} y={padT+chartH-bH} width={barW} height={bH} fill="#007aff" rx="2" opacity="0.8" /><text x={x} y={padT+chartH-bH-2} textAnchor="middle" fontSize="8" fill="#007aff" fontWeight="600">{v}</text></g>;
+        return <g key={s.id ?? i}><rect x={x-barW/2} y={padT+chartH-bH} width={barW} height={bH} fill="var(--accent)" rx="2" opacity="0.8" /><text x={x} y={padT+chartH-bH-2} textAnchor="middle" fontSize="8" fill="var(--accent)" fontWeight="600">{v}</text></g>;
       })}
-      {sets.length > 1 && <path d={linePts} fill="none" stroke="#34c759" strokeWidth="2" strokeLinejoin="round" />}
-      {sets.map((s, i) => <circle key={`d${i}`} cx={xPos(new Date(s.timestamp))} cy={yBar(cumValues[i])} r="3" fill="#34c759" />)}
+      {sets.length > 1 && <path d={linePts} fill="none" stroke="var(--accent-orange)" strokeWidth="2" strokeLinejoin="round" />}
+      {sets.map((s, i) => <circle key={`d${i}`} cx={xPos(new Date(s.timestamp))} cy={yBar(cumValues[i])} r="3" fill="var(--accent-orange)" />)}
       <line x1={padL} x2={W-padR} y1={padT+chartH} y2={padT+chartH} stroke="#ccc" strokeWidth="1" />
       {tickHours.map(h => {
         const t = new Date(dayStart); t.setHours(h,0,0,0);
