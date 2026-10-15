@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { getAllExercises } from '../db/exercises';
-import { getOrCreateTodaySession, getTodaySessions } from '../db/sessions';
-import { addSet, getSetsBySession, updateSet, deleteSet } from '../db/sets';
+import { getOrCreateTodaySession, getTodaySessions, getSessionsByExercise } from '../db/sessions';
+import { addSet, getSetsBySession, getAllSetsForExercise, updateSet, deleteSet } from '../db/sets';
 import type { Exercise } from '../models/Exercise';
 import type { WorkoutSet } from '../models/WorkoutSet';
 import GtgStatus from '../components/GtgStatus';
@@ -78,6 +78,7 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
   const [value, setValue] = useState(getDefaultValue(exercise));
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [justLogged, setJustLogged] = useState(false);
+  const [isPR, setIsPR] = useState(false);
   const [showSets, setShowSets] = useState(false);
   const [editingSet, setEditingSet] = useState<SetWithExercise | null>(null);
   const [editValue, setEditValue] = useState(0);
@@ -88,6 +89,21 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
   const minValue = exercise.trackingType === 'distance' ? 0.1 : 1;
 
   async function logSet() {
+    // Compute previous best before adding this set
+    const allSessions = await getSessionsByExercise(exercise.id!);
+    const allSessionIds = allSessions.map(s => s.id!).filter(Boolean);
+    let previousBest = 0;
+    if (allSessionIds.length > 0) {
+      const historicalSets = await getAllSetsForExercise(allSessionIds);
+      if (exercise.trackingType === 'reps')
+        previousBest = historicalSets.length ? Math.max(...historicalSets.map(s => s.reps ?? 0)) : 0;
+      else if (exercise.trackingType === 'duration')
+        previousBest = historicalSets.length ? Math.max(...historicalSets.map(s => s.duration ?? 0)) : 0;
+      else if (exercise.trackingType === 'distance')
+        previousBest = historicalSets.length ? Math.max(...historicalSets.map(s => s.distance ?? 0)) : 0;
+    }
+    const newPR = previousBest === 0 /* first ever set */ || value >= previousBest;
+
     const sid = sessionId ?? await getOrCreateTodaySession(exercise.id!);
     setSessionId(sid);
     const setData: Omit<WorkoutSet, 'id'> = {
@@ -104,8 +120,9 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
     await onRefresh();
     setSessionId(sid);
     setShowSets(true);
+    setIsPR(newPR);
     setJustLogged(true);
-    setTimeout(() => setJustLogged(false), 1500);
+    setTimeout(() => { setJustLogged(false); setIsPR(false); }, 2000);
   }
 
   function openEditSet(s: SetWithExercise) {
@@ -149,7 +166,10 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
     <div className="ex-card">
       {/* Card Header */}
       <div className="ex-card-header">
-        <span className="ex-card-name">{exercise.name}</span>
+        <span className="ex-card-name">
+          {exercise.name}
+          {isPR && <span className="pr-badge">🏆 PR!</span>}
+        </span>
         {summaryText ? (
           <button
             className={`ex-card-summary-btn${showSets ? ' ex-card-summary-btn--open' : ''}`}
@@ -187,10 +207,10 @@ function ExerciseCard({ exercise, todaySets, onRefresh }: ExerciseCardProps) {
           >+</button>
         </div>
         <button
-          className={`log-btn ${justLogged ? 'log-btn--success' : ''}`}
+          className={`log-btn ${justLogged ? (isPR ? 'log-btn--pr' : 'log-btn--success') : ''}`}
           onClick={logSet}
         >
-          {justLogged ? '✓ Logged!' : 'LOG SET'}
+          {justLogged ? (isPR ? '🏆 PR!' : '✓ Logged!') : 'LOG SET'}
         </button>
       </div>
 

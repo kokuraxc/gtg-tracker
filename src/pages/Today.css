@@ -144,6 +144,26 @@
   background: var(--accent-green);
 }
 
+.log-btn--pr {
+  background: #c8860a;
+}
+
+/* ── PR badge ─────────────────────────────────────────────── */
+
+.pr-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c8860a;
+  animation: pr-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pr-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
 /* ── Today's Sets (inline in card) ───────────────────── */
 
 .ex-card-sets {
