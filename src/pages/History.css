@@ -27,16 +27,26 @@
   margin-bottom: 0.5rem;
 }
 
+.history-session-wrap {
+  margin-bottom: 0.5rem;
+}
+
 .history-session {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   background: var(--bg-surface);
   border-radius: 12px;
   padding: 0.9rem 1rem;
-  margin-bottom: 0.5rem;
   border: none;
   text-align: left;
   cursor: pointer;
+  font-family: inherit;
+}
+
+.history-session--open {
+  border-radius: 12px 12px 0 0;
 }
 
 .history-session:active {
@@ -48,9 +58,28 @@
   margin-bottom: 0.2rem;
 }
 
+.history-session-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .history-detail {
   font-size: 0.85rem;
   color: var(--text-2);
+}
+
+.history-session-chevron {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.history-session-detail {
+  background: var(--bg-surface);
+  border-radius: 0 0 12px 12px;
+  border-top: 1px solid var(--border-light);
+  padding: 0.75rem 1rem 1rem;
 }
 
 /* Detail view */

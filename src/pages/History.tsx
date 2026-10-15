@@ -136,32 +136,6 @@ function SetChart({ sets, exercise }: { sets: WorkoutSet[]; exercise: Exercise }
   );
 }
 
-function SessionDetail({ summary, onBack }: { summary: SessionSummary; onBack: () => void }) {
-  const { exercise, sets, session } = summary;
-  const getValue = (s: WorkoutSet) =>
-    exercise.trackingType === 'duration' ? s.duration : exercise.trackingType === 'distance' ? s.distance : s.reps;
-  const unit = exercise.trackingType === 'duration' ? (exercise.durationUnit ?? 'sec')
-    : exercise.trackingType === 'distance' ? 'km' : 'reps';
-  const dateLabel = new Date(session.startedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric' });
-  return (
-    <div className="history">
-      <button className="back-btn" onClick={onBack}>← Back</button>
-      <h2 className="history-title">{exercise.name}</h2>
-      <p className="detail-date">{dateLabel}</p>
-      <SetChart sets={sets} exercise={exercise} />
-      <ul className="sets-list-detail">
-        {[...sets].reverse().map((s, i) => (
-          <li key={s.id} className="set-item-detail">
-            <span className="set-num">Set {sets.length - i}</span>
-            <span className="set-val">{getValue(s)} {unit}</span>
-            <span className="set-t">{new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 // ── Per-exercise data ──────────────────────────────────────────
 
 interface ExerciseData {
@@ -173,12 +147,10 @@ interface ExerciseData {
 
 // ── Exercise chart card ────────────────────────────────────────
 
-function ExerciseChartCard({ data, onSessionClick }: {
-  data: ExerciseData;
-  onSessionClick: (s: SessionSummary) => void;
-}) {
+function ExerciseChartCard({ data }: { data: ExerciseData }) {
   const [expanded, setExpanded] = useState(false);
   const [range, setRange] = useState<7 | 30>(7);
+  const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
   const { exercise, allSets, stats, dayGroups } = data;
 
   const chartData = buildDailyData(allSets, range);
@@ -241,24 +213,48 @@ function ExerciseChartCard({ data, onSessionClick }: {
           {dayGroups.map(day => (
             <div key={day.dateKey} className="history-day">
               <div className="history-date">{day.dateLabel}</div>
-              {day.sessions.map(summary => (
-                <button
-                  key={summary.session.id}
-                  className="history-session"
-                  onClick={() => onSessionClick(summary)}
-                >
-                  <div className="history-exercise">{summary.setCount} sets · {summary.totalValue} {unit} total</div>
-                  <div className="history-detail">
-                    {(() => {
-                      const fmt = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                      const times = summary.sets.map(s => new Date(s.timestamp).getTime());
-                      const first = fmt(new Date(Math.min(...times)));
-                      const last  = fmt(new Date(Math.max(...times)));
-                      return first === last ? first : `${first} – ${last}`;
-                    })()}
+              {day.sessions.map(summary => {
+                const sid = summary.session.id!;
+                const isOpen = expandedSessionId === sid;
+                const getValue = (s: WorkoutSet) =>
+                  summary.exercise.trackingType === 'duration' ? s.duration
+                  : summary.exercise.trackingType === 'distance' ? s.distance : s.reps;
+                const fmt = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const times = summary.sets.map(s => new Date(s.timestamp).getTime());
+                const first = fmt(new Date(Math.min(...times)));
+                const last  = fmt(new Date(Math.max(...times)));
+                const timeRange = first === last ? first : `${first} – ${last}`;
+
+                return (
+                  <div key={sid} className="history-session-wrap">
+                    <button
+                      className={`history-session${isOpen ? ' history-session--open' : ''}`}
+                      onClick={() => setExpandedSessionId(isOpen ? null : sid)}
+                    >
+                      <div className="history-exercise">{summary.setCount} sets · {summary.totalValue} {unit} total</div>
+                      <div className="history-session-right">
+                        <span className="history-detail">{timeRange}</span>
+                        <span className="history-session-chevron">{isOpen ? '▴' : '▾'}</span>
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="history-session-detail">
+                        <SetChart sets={summary.sets} exercise={summary.exercise} />
+                        <ul className="sets-list-detail">
+                          {[...summary.sets].reverse().map((s, i) => (
+                            <li key={s.id} className="set-item-detail">
+                              <span className="set-num">Set {summary.sets.length - i}</span>
+                              <span className="set-val">{getValue(s)} {unit}</span>
+                              <span className="set-t">{fmt(new Date(s.timestamp))}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           ))}
         </div>
@@ -272,7 +268,6 @@ function ExerciseChartCard({ data, onSessionClick }: {
 export default function History() {
   const [exerciseData, setExerciseData] = useState<ExerciseData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<SessionSummary | null>(null);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -309,18 +304,13 @@ export default function History() {
   }
 
   if (loading) return <div className="history"><p className="loading">Loading…</p></div>;
-  if (selected) return <SessionDetail summary={selected} onBack={() => setSelected(null)} />;
 
   return (
     <div className="history">
       <h2 className="history-title">History</h2>
       {exerciseData.length === 0 && <p className="no-history">No exercises yet.</p>}
       {exerciseData.map(data => (
-        <ExerciseChartCard
-          key={data.exercise.id}
-          data={data}
-          onSessionClick={setSelected}
-        />
+        <ExerciseChartCard key={data.exercise.id} data={data} />
       ))}
     </div>
   );
