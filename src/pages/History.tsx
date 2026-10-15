@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { getAllSessions, getSessionsByExercise } from '../db/sessions';
+import { getSessionsByExercise } from '../db/sessions';
 import { getSetsBySession, getAllSetsForExercise } from '../db/sets';
-import { getExerciseById, getAllExercises } from '../db/exercises';
+import { getAllExercises } from '../db/exercises';
 import type { WorkoutSession } from '../models/WorkoutSession';
 import type { WorkoutSet } from '../models/WorkoutSet';
 import type { Exercise } from '../models/Exercise';
 import './History.css';
 import './Statistics.css';
 
-// ── Stats helpers (from Statistics) ───────────────────────────
+// ── Helpers ────────────────────────────────────────────────────
+
 interface DayTotal { label: string; reps: number; isToday: boolean; }
 
 function buildWeeklyData(sets: WorkoutSet[]): DayTotal[] {
@@ -80,168 +81,76 @@ interface SessionSummary {
   totalValue: number;
 }
 
-interface DayGroup {
-  dateLabel: string;
-  sessions: SessionSummary[];
-}
+interface DayGroup { dateKey: string; dateLabel: string; sessions: SessionSummary[]; }
 
-// ── SVG Bar Chart ──────────────────────────────────────────────
+// ── Session detail (set-by-set chart) ─────────────────────────
+
 function SetChart({ sets, exercise }: { sets: WorkoutSet[]; exercise: Exercise }) {
   if (sets.length === 0) return <p className="no-history">No sets recorded.</p>;
 
   const W = 320, H = 200, padL = 40, padB = 28, padR = 12, padT = 12;
-  const chartW = W - padL - padR;
-  const chartH = H - padT - padB;
-
+  const chartW = W - padL - padR; const chartH = H - padT - padB;
   const getValue = (s: WorkoutSet) =>
     exercise.trackingType === 'duration' ? (s.duration ?? 0)
-    : exercise.trackingType === 'distance' ? (s.distance ?? 0)
-    : (s.reps ?? 0);
-
-  const unit = exercise.trackingType === 'duration'
-    ? (exercise.durationUnit ?? 'sec')
+    : exercise.trackingType === 'distance' ? (s.distance ?? 0) : (s.reps ?? 0);
+  const unit = exercise.trackingType === 'duration' ? (exercise.durationUnit ?? 'sec')
     : exercise.trackingType === 'distance' ? 'km' : 'reps';
-
-  // X axis: 07:00 to 01:00 next day (18 hours)
   const dayRef = new Date(sets[0].timestamp);
   const dayStart = new Date(dayRef); dayStart.setHours(7, 0, 0, 0);
-  const dayEnd = new Date(dayRef); dayEnd.setHours(25, 0, 0, 0); // 01:00 next day
+  const dayEnd = new Date(dayRef); dayEnd.setHours(25, 0, 0, 0);
   const dayRange = dayEnd.getTime() - dayStart.getTime();
-
   const xPos = (t: Date) => padL + ((t.getTime() - dayStart.getTime()) / dayRange) * chartW;
-
-  // Y axis: shared scale — max is the cumulative total
   const values = sets.map(getValue);
-
-  // cumulative totals
-  const cumValues: number[] = [];
-  let running = 0;
+  const cumValues: number[] = []; let running = 0;
   for (const v of values) { running += v; cumValues.push(running); }
   const maxY = Math.max(...cumValues, 1);
-
-  // single shared y-scale
   const yBar = (v: number) => padT + chartH - (v / maxY) * chartH;
-  const yCum = yBar;
-
   const barW = Math.max(4, Math.min(12, chartW / sets.length * 0.15));
-
-  // cumulative step-line path: starts at 0 at first set, steps up after each set
-  const linePts: string[] = [];
-  sets.forEach((s, i) => {
-    const x = xPos(new Date(s.timestamp));
-    const y = yCum(cumValues[i]);
-    linePts.push(`${i === 0 ? 'M' : 'L'}${x},${y}`);
-  });
-  const linePath = linePts.join(' ');
-
-  // x-axis hour labels: 07:00, 10:00, 13:00, 16:00, 19:00, 22:00, 01:00
+  const linePts = sets.map((s, i) => `${i === 0 ? 'M' : 'L'}${xPos(new Date(s.timestamp))},${yBar(cumValues[i])}`).join(' ');
   const tickHours = [7, 10, 13, 16, 19, 22, 25];
-  const hourLabels = tickHours.map(h => {
-    const t = new Date(dayStart); t.setHours(h, 0, 0, 0);
-    const x = padL + ((t.getTime() - dayStart.getTime()) / dayRange) * chartW;
-    const displayH = h === 25 ? 1 : h;
-    const label = `${String(displayH).padStart(2, '0')}:00`;
-    return { x, label };
-  });
-
-  // y gridlines for bars (left scale)
-  const yGridFracs = [0, 0.5, 1];
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="set-chart">
-      {/* Y gridlines + labels (shared scale) */}
-      {yGridFracs.map(frac => {
-        const v = Math.round(maxY * frac);
-        const y = padT + chartH - frac * chartH;
-        return (
-          <g key={frac}>
-            <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="#e8e8e8" strokeWidth="1" />
-            <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#aaa">{v}</text>
-          </g>
-        );
+      {[0, 0.5, 1].map(frac => {
+        const v = Math.round(maxY * frac); const y = padT + chartH - frac * chartH;
+        return <g key={frac}><line x1={padL} x2={W-padR} y1={y} y2={y} stroke="#e8e8e8" strokeWidth="1" /><text x={padL-4} y={y+4} textAnchor="end" fontSize="9" fill="#aaa">{v}</text></g>;
       })}
-
-      {/* Bars (per-set values) */}
       {sets.map((s, i) => {
-        const v = getValue(s);
-        const x = xPos(new Date(s.timestamp));
-        const bH = (v / maxY) * chartH;
-        const y = padT + chartH - bH;
-        return (
-          <g key={s.id ?? i}>
-            <rect x={x - barW / 2} y={y} width={barW} height={bH}
-              fill="#007aff" rx="2" opacity="0.8" />
-            <text x={x} y={y - 2} textAnchor="middle" fontSize="8" fill="#007aff" fontWeight="600">{v}</text>
-          </g>
-        );
+        const v = getValue(s); const x = xPos(new Date(s.timestamp)); const bH = (v/maxY)*chartH;
+        return <g key={s.id ?? i}><rect x={x-barW/2} y={padT+chartH-bH} width={barW} height={bH} fill="#007aff" rx="2" opacity="0.8" /><text x={x} y={padT+chartH-bH-2} textAnchor="middle" fontSize="8" fill="#007aff" fontWeight="600">{v}</text></g>;
       })}
-
-      {/* Cumulative step line */}
-      {sets.length > 1 && (
-        <path d={linePath} fill="none" stroke="#34c759" strokeWidth="2" strokeLinejoin="round" />
-      )}
-
-      {/* Dots on cumulative line */}
-      {sets.map((s, i) => (
-        <circle key={`dot${i}`}
-          cx={xPos(new Date(s.timestamp))} cy={yCum(cumValues[i])}
-          r="3" fill="#34c759" />
-      ))}
-
-      {/* X-axis line */}
-      <line x1={padL} x2={W - padR} y1={padT + chartH} y2={padT + chartH} stroke="#ccc" strokeWidth="1" />
-
-      {/* X-axis hour labels */}
-      {hourLabels.map(({ x, label }) => (
-        <text key={label} x={x} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{label}</text>
-      ))}
-
-      {/* Left axis unit label */}
-      <text x={6} y={padT + chartH / 2} fontSize="8" fill="#007aff"
-        transform={`rotate(-90, 6, ${padT + chartH / 2})`} textAnchor="middle">{unit}</text>
-
-      {/* Legend */}
-      <rect x={padL + 4} y={padT} width={7} height={7} fill="#007aff" rx="1" opacity="0.8" />
-      <text x={padL + 14} y={padT + 6} fontSize="8" fill="#555">per set</text>
-      <circle cx={padL + 60} cy={padT + 3.5} r="3" fill="#34c759" />
-      <text x={padL + 66} y={padT + 6} fontSize="8" fill="#555">cumulative</text>
+      {sets.length > 1 && <path d={linePts} fill="none" stroke="#34c759" strokeWidth="2" strokeLinejoin="round" />}
+      {sets.map((s, i) => <circle key={`d${i}`} cx={xPos(new Date(s.timestamp))} cy={yBar(cumValues[i])} r="3" fill="#34c759" />)}
+      <line x1={padL} x2={W-padR} y1={padT+chartH} y2={padT+chartH} stroke="#ccc" strokeWidth="1" />
+      {tickHours.map(h => {
+        const t = new Date(dayStart); t.setHours(h,0,0,0);
+        const x = padL + ((t.getTime()-dayStart.getTime())/dayRange)*chartW;
+        return <text key={h} x={x} y={H-6} textAnchor="middle" fontSize="8" fill="#bbb">{`${String(h===25?1:h).padStart(2,'0')}:00`}</text>;
+      })}
+      <text x={6} y={padT+chartH/2} fontSize="8" fill="#007aff" transform={`rotate(-90,6,${padT+chartH/2})`} textAnchor="middle">{unit}</text>
     </svg>
   );
 }
 
-// ── Detail view ────────────────────────────────────────────────
 function SessionDetail({ summary, onBack }: { summary: SessionSummary; onBack: () => void }) {
   const { exercise, sets, session } = summary;
-
   const getValue = (s: WorkoutSet) =>
-    exercise.trackingType === 'duration' ? s.duration
-    : exercise.trackingType === 'distance' ? s.distance
-    : s.reps;
-
-  const unit = exercise.trackingType === 'duration'
-    ? (exercise.durationUnit ?? 'sec')
+    exercise.trackingType === 'duration' ? s.duration : exercise.trackingType === 'distance' ? s.distance : s.reps;
+  const unit = exercise.trackingType === 'duration' ? (exercise.durationUnit ?? 'sec')
     : exercise.trackingType === 'distance' ? 'km' : 'reps';
-
-  const dateLabel = new Date(session.startedAt).toLocaleDateString(undefined, {
-    weekday: 'short', month: 'long', day: 'numeric',
-  });
-
+  const dateLabel = new Date(session.startedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric' });
   return (
     <div className="history">
       <button className="back-btn" onClick={onBack}>← Back</button>
       <h2 className="history-title">{exercise.name}</h2>
       <p className="detail-date">{dateLabel}</p>
-
       <SetChart sets={sets} exercise={exercise} />
-
       <ul className="sets-list-detail">
         {[...sets].reverse().map((s, i) => (
           <li key={s.id} className="set-item-detail">
             <span className="set-num">Set {sets.length - i}</span>
             <span className="set-val">{getValue(s)} {unit}</span>
-            <span className="set-t">
-              {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            <span className="set-t">{new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </li>
         ))}
       </ul>
@@ -249,136 +158,145 @@ function SessionDetail({ summary, onBack }: { summary: SessionSummary; onBack: (
   );
 }
 
+// ── Per-exercise data ──────────────────────────────────────────
+
+interface ExerciseData {
+  exercise: Exercise;
+  allSets: WorkoutSet[];
+  weeklyData: DayTotal[];
+  stats: Stats;
+  dayGroups: DayGroup[];
+}
+
+// ── Exercise chart card ────────────────────────────────────────
+
+function ExerciseChartCard({ data, onSessionClick }: {
+  data: ExerciseData;
+  onSessionClick: (s: SessionSummary) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const { exercise, weeklyData, stats, dayGroups } = data;
+
+  const targetReps = exercise.gtgEnabled
+    ? exercise.gtgMaxSetsPerDay * (exercise.defaultReps ?? 5)
+    : undefined;
+
+  const unit = exercise.trackingType === 'duration' ? (exercise.durationUnit ?? 'sec')
+    : exercise.trackingType === 'distance' ? 'km' : 'reps';
+
+  const statCards = [
+    { label: 'Today',          value: `${stats.repsToday} ${unit}` },
+    { label: 'This week',      value: `${stats.repsThisWeek} ${unit}` },
+    { label: 'Best set',       value: `${stats.bestSet} ${unit}` },
+    { label: 'Avg / set',      value: `${stats.avgReps}` },
+    { label: 'Sets this week', value: `${stats.setsThisWeek}` },
+    { label: 'Training days',  value: `${stats.trainingDays}` },
+  ];
+
+  return (
+    <div className="hist-ex-card">
+      <button className="hist-ex-header" onClick={() => setExpanded(v => !v)}>
+        <span className="hist-ex-name">{exercise.name}</span>
+        <span className="hist-ex-chevron">{expanded ? '▴' : '▾'}</span>
+      </button>
+
+      <div className="hist-chart-wrap" onClick={() => setExpanded(v => !v)}>
+        <WeeklyChart days={weeklyData} targetReps={targetReps} />
+      </div>
+
+      {expanded && (
+        <div className="hist-ex-detail">
+          <div className="stats-grid">
+            {statCards.map(s => (
+              <div key={s.label} className="stat-card">
+                <div className="stat-value">{s.value}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {dayGroups.length === 0 && (
+            <p className="no-history">No workouts logged yet.</p>
+          )}
+
+          {dayGroups.map(day => (
+            <div key={day.dateKey} className="history-day">
+              <div className="history-date">{day.dateLabel}</div>
+              {day.sessions.map(summary => (
+                <button
+                  key={summary.session.id}
+                  className="history-session"
+                  onClick={() => onSessionClick(summary)}
+                >
+                  <div className="history-exercise">{summary.setCount} sets · {summary.totalValue} {unit} total</div>
+                  <div className="history-detail">
+                    {new Date(summary.session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main History page ──────────────────────────────────────────
+
 export default function History() {
-  const [days, setDays] = useState<DayGroup[]>([]);
+  const [exerciseData, setExerciseData] = useState<ExerciseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<SessionSummary | null>(null);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [statsEx, setStatsEx] = useState<Exercise | null>(null);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [weeklyData, setWeeklyData] = useState<DayTotal[]>([]);
 
   useEffect(() => { loadAll(); }, []);
 
   async function loadAll() {
-    const [exList] = await Promise.all([getAllExercises()]);
-    setExercises(exList);
-    if (exList.length > 0) await loadStats(exList[0]);
-    await loadHistory();
-  }
+    const exercises = await getAllExercises();
 
-  async function loadStats(ex: Exercise) {
-    setStatsEx(ex);
-    const sessions = await getSessionsByExercise(ex.id!);
-    const sets = await getAllSetsForExercise(sessions.map(s => s.id!));
-    setStats(computeStats(sets));
-    setWeeklyData(buildWeeklyData(sets));
-  }
+    const allData: ExerciseData[] = await Promise.all(exercises.map(async ex => {
+      const sessions = await getSessionsByExercise(ex.id!);
+      const allSets = await getAllSetsForExercise(sessions.map(s => s.id!));
 
-  async function loadHistory() {
-    const sessions = await getAllSessions();
-    const grouped: Record<string, DayGroup> = {};
+      // Build per-session summaries grouped by day
+      const grouped: Record<string, DayGroup> = {};
+      for (const session of sessions) {
+        const sets = await getSetsBySession(session.id!);
+        if (sets.length === 0) continue;
+        const dateKey = new Date(session.startedAt).toDateString();
+        const dateLabel = new Date(session.startedAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+        if (!grouped[dateKey]) grouped[dateKey] = { dateKey, dateLabel, sessions: [] };
+        const total = sets.reduce((sum, s) => sum + (s.reps ?? s.duration ?? s.distance ?? 0), 0);
+        grouped[dateKey].sessions.push({ session, exercise: ex, sets, setCount: sets.length, totalValue: total });
+      }
+      const dayGroups = Object.values(grouped).sort((a, b) => new Date(b.dateKey).getTime() - new Date(a.dateKey).getTime());
 
-    for (const session of sessions) {
-      const sets = await getSetsBySession(session.id!);
-      const exercise = await getExerciseById(session.exerciseId);
-      if (!exercise) continue;
+      return {
+        exercise: ex,
+        allSets,
+        weeklyData: buildWeeklyData(allSets),
+        stats: computeStats(allSets),
+        dayGroups,
+      };
+    }));
 
-      const dateKey = new Date(session.startedAt).toDateString();
-      const dateLabel = new Date(session.startedAt).toLocaleDateString(undefined, {
-        month: 'long', day: 'numeric',
-      });
-
-      const total = sets.reduce((sum, s) => sum + (s.reps ?? s.duration ?? s.distance ?? 0), 0);
-
-      if (sets.length === 0) continue; // skip empty sessions
-
-      if (!grouped[dateKey]) grouped[dateKey] = { dateLabel, sessions: [] };
-      grouped[dateKey].sessions.push({
-        session, exercise, sets,
-        setCount: sets.length,
-        totalValue: total,
-      });
-    }
-
-    const sorted = Object.entries(grouped)
-      .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-      .map(([, v]) => v);
-    setDays(sorted);
+    setExerciseData(allData);
     setLoading(false);
   }
 
   if (loading) return <div className="history"><p className="loading">Loading…</p></div>;
   if (selected) return <SessionDetail summary={selected} onBack={() => setSelected(null)} />;
 
-  const unit = (ex: Exercise) =>
-    ex.trackingType === 'duration' ? (ex.durationUnit ?? 'sec')
-    : ex.trackingType === 'distance' ? 'km' : 'reps';
-
-  const statCards = stats ? [
-    { label: 'Today',         value: `${stats.repsToday} reps` },
-    { label: 'This week',     value: `${stats.repsThisWeek} reps` },
-    { label: 'Best set',      value: `${stats.bestSet} reps` },
-    { label: 'Avg reps/set',  value: `${stats.avgReps}` },
-    { label: 'Sets this week',value: `${stats.setsThisWeek}` },
-    { label: 'Training days', value: `${stats.trainingDays}` },
-  ] : [];
-
   return (
     <div className="history">
       <h2 className="history-title">History</h2>
-
-      {/* ── Stats section ── */}
-      {exercises.length > 1 && (
-        <div className="stats-tabs">
-          {exercises.map(ex => (
-            <button key={ex.id} className={`stats-tab${statsEx?.id === ex.id ? ' stats-tab--active' : ''}`} onClick={() => loadStats(ex)}>
-              {ex.name}
-            </button>
-          ))}
-        </div>
-      )}
-      {statsEx && <div className="stats-exercise-name">{statsEx.name}</div>}
-      {stats && (
-        <div className="stats-grid">
-          {statCards.map(s => (
-            <div key={s.label} className="stat-card">
-              <div className="stat-value">{s.value}</div>
-              <div className="stat-label">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      {weeklyData.length > 0 && (
-        <div className="weekly-chart-card">
-          <div className="weekly-chart-title">Last 7 days</div>
-          <WeeklyChart days={weeklyData} targetReps={statsEx?.gtgEnabled ? (statsEx.gtgMaxSetsPerDay * (statsEx.defaultReps ?? 5)) : undefined} />
-        </div>
-      )}
-
-      <h3 className="history-log-title">Log</h3>
-
-      {days.length === 0 && <p className="no-history">No workouts logged yet.</p>}
-
-      {days.map(day => (
-        <div key={day.dateLabel} className="history-day">
-          <div className="history-date">{day.dateLabel}</div>
-          {day.sessions.map(summary => (
-            <button
-              key={summary.session.id}
-              className="history-session"
-              onClick={() => setSelected(summary)}
-            >
-              <div className="history-exercise">{summary.exercise.name}</div>
-              <div className="history-detail">
-                {summary.setCount > 0
-                  ? `${summary.setCount} sets · ${summary.totalValue} ${unit(summary.exercise)} total`
-                  : 'Session started'}
-              </div>
-            </button>
-          ))}
-        </div>
+      {exerciseData.length === 0 && <p className="no-history">No exercises yet.</p>}
+      {exerciseData.map(data => (
+        <ExerciseChartCard
+          key={data.exercise.id}
+          data={data}
+          onSessionClick={setSelected}
+        />
       ))}
     </div>
   );

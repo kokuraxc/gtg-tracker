@@ -105,11 +105,53 @@
   color: var(--text-3);
 }
 
-.history-log-title {
-  font-size: 1rem;
+/* ── Exercise chart card ───────────────────────────────── */
+
+.hist-ex-card {
+  background: var(--bg-surface);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.hist-ex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.hist-ex-name {
+  font-size: 1.1rem;
   font-weight: 700;
+  color: var(--text);
+}
+
+.hist-ex-chevron {
+  font-size: 0.9rem;
   color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 1.5rem 0 0.75rem;
+}
+
+.hist-chart-wrap {
+  padding: 0 1rem 0.75rem;
+  cursor: pointer;
+}
+
+.hist-ex-detail {
+  border-top: 1px solid var(--border-light);
+  padding: 1rem 1.25rem;
+}
+
+.hist-ex-detail .history-day {
+  margin-bottom: 1rem;
+}
+
+.hist-ex-detail .history-session {
+  background: var(--bg-surface-2);
 }
