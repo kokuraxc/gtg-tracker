@@ -56,7 +56,7 @@ function WeeklyChart({ days, targetReps }: { days: DayTotal[]; targetReps?: numb
   );
 }
 
-interface Stats { repsToday: number; repsThisWeek: number; bestSet: number; avgReps: number; setsThisWeek: number; trainingDays: number; }
+interface Stats { repsToday: number; repsThisWeek: number; repsTotal: number; bestSet: number; avgReps: number; setsThisWeek: number; trainingDays: number; }
 
 function computeStats(sets: WorkoutSet[]): Stats {
   const now = new Date();
@@ -66,6 +66,7 @@ function computeStats(sets: WorkoutSet[]): Stats {
   return {
     repsToday: sets.filter(s => new Date(s.timestamp) >= todayStart).reduce((sum,s) => sum+(s.reps??0),0),
     repsThisWeek: sets.filter(s => new Date(s.timestamp) >= weekStart).reduce((sum,s) => sum+(s.reps??0),0),
+    repsTotal: repSets.reduce((sum,s) => sum+s.reps!,0),
     bestSet: repSets.length ? Math.max(...repSets.map(s => s.reps!)) : 0,
     avgReps: repSets.length ? Math.round(repSets.reduce((sum,s) => sum+s.reps!,0)/repSets.length*10)/10 : 0,
     setsThisWeek: sets.filter(s => new Date(s.timestamp) >= weekStart).length,
@@ -187,6 +188,7 @@ function ExerciseChartCard({ data, onSessionClick }: {
   const statCards = [
     { label: 'Today',          value: `${stats.repsToday} ${unit}` },
     { label: 'This week',      value: `${stats.repsThisWeek} ${unit}` },
+    { label: 'Total',          value: `${stats.repsTotal} ${unit}` },
     { label: 'Best set',       value: `${stats.bestSet} ${unit}` },
     { label: 'Avg / set',      value: `${stats.avgReps}` },
     { label: 'Sets this week', value: `${stats.setsThisWeek}` },
