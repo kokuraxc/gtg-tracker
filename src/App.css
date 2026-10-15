@@ -47,12 +47,12 @@
 .app-nav-btn {
   flex: 1;
   min-height: 44px;
-  padding: 0.55rem 0;
+  padding: 0.55rem 0.25rem;
   border: none;
   background: none;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   cursor: pointer;
-  color: var(--text-3);
+  color: var(--text-4);
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
   display: flex;
@@ -60,9 +60,25 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
+  opacity: 0.75;
+  transition: opacity 0.15s;
 }
 
 .app-nav-btn--active {
+  opacity: 1;
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.8rem;
+  position: relative;
+}
+
+.app-nav-btn--active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  background: var(--accent-orange);
+  border-radius: 0 0 3px 3px;
 }
