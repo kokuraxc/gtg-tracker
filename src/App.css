@@ -18,11 +18,22 @@
   min-height: 0;     /* let flex child shrink below content size */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: calc(1rem + env(safe-area-inset-top)) 1rem 1rem;
+  /* reserve space for the fixed bottom nav */
+  padding: calc(1rem + env(safe-area-inset-top)) 1rem
+           calc(1rem + var(--nav-h, 64px) + env(safe-area-inset-bottom));
 }
 
+/* Pinned to the physical bottom of the screen (incl. home-indicator area) */
 .app-nav {
-  flex-shrink: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  height: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom));
   display: flex;
   background: var(--nav-bg);
   -webkit-backdrop-filter: blur(10px);
