@@ -249,7 +249,13 @@ function ExerciseChartCard({ data, onSessionClick }: {
                 >
                   <div className="history-exercise">{summary.setCount} sets · {summary.totalValue} {unit} total</div>
                   <div className="history-detail">
-                    {new Date(summary.session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {(() => {
+                      const fmt = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      const times = summary.sets.map(s => new Date(s.timestamp).getTime());
+                      const first = fmt(new Date(Math.min(...times)));
+                      const last  = fmt(new Date(Math.max(...times)));
+                      return first === last ? first : `${first} – ${last}`;
+                    })()}
                   </div>
                 </button>
               ))}
