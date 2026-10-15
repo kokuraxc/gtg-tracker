@@ -10,17 +10,20 @@ import './Statistics.css';
 
 // ── Helpers ────────────────────────────────────────────────────
 
-interface DayTotal { label: string; reps: number; isToday: boolean; }
+interface DayTotal { label: string; reps: number; isToday: boolean; showLabel: boolean; }
 
-function buildWeeklyData(sets: WorkoutSet[]): DayTotal[] {
+function buildDailyData(sets: WorkoutSet[], days: number): DayTotal[] {
   const DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const now = new Date();
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(now); d.setDate(now.getDate() - (6 - i)); d.setHours(0,0,0,0);
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(now); d.setDate(now.getDate() - (days - 1 - i)); d.setHours(0,0,0,0);
     const next = new Date(d); next.setDate(d.getDate() + 1);
     const reps = sets.filter(s => { const t = new Date(s.timestamp); return t >= d && t < next && s.reps != null; })
                      .reduce((sum, s) => sum + s.reps!, 0);
-    return { label: DAY[d.getDay()], reps, isToday: i === 6 };
+    const label = days <= 7 ? DAY[d.getDay()] : String(d.getDate());
+    // For 30d show every 7th label + today to avoid crowding
+    const showLabel = days <= 7 || i === days - 1 || i % 7 === 0;
+    return { label, reps, isToday: i === days - 1, showLabel };
   });
 }
 
@@ -47,8 +50,8 @@ function WeeklyChart({ days, targetReps }: { days: DayTotal[]; targetReps?: numb
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={bH} rx={3} fill={col} />
-            {d.reps > 0 && <text x={x+barW/2} y={y-3} textAnchor="middle" fontSize={9} fill="var(--text-2)">{d.reps}</text>}
-            <text x={padL+i*gap+gap/2} y={H-4} textAnchor="middle" fontSize={10} fill={d.isToday ? 'var(--accent)' : 'var(--text-3)'} fontWeight={d.isToday ? '700' : '400'}>{d.label}</text>
+            {d.reps > 0 && days.length <= 7 && <text x={x+barW/2} y={y-3} textAnchor="middle" fontSize={9} fill="var(--text-2)">{d.reps}</text>}
+            {d.showLabel && <text x={padL+i*gap+gap/2} y={H-4} textAnchor="middle" fontSize={10} fill={d.isToday ? 'var(--accent)' : 'var(--text-3)'} fontWeight={d.isToday ? '700' : '400'}>{d.label}</text>}
           </g>
         );
       })}
@@ -164,7 +167,6 @@ function SessionDetail({ summary, onBack }: { summary: SessionSummary; onBack: (
 interface ExerciseData {
   exercise: Exercise;
   allSets: WorkoutSet[];
-  weeklyData: DayTotal[];
   stats: Stats;
   dayGroups: DayGroup[];
 }
@@ -176,9 +178,12 @@ function ExerciseChartCard({ data, onSessionClick }: {
   onSessionClick: (s: SessionSummary) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { exercise, weeklyData, stats, dayGroups } = data;
+  const [range, setRange] = useState<7 | 30>(7);
+  const { exercise, allSets, stats, dayGroups } = data;
 
-  const targetReps = exercise.gtgEnabled
+  const chartData = buildDailyData(allSets, range);
+
+  const targetReps = exercise.gtgEnabled && range === 7
     ? exercise.gtgMaxSetsPerDay * (exercise.defaultReps ?? 5)
     : undefined;
 
@@ -197,13 +202,25 @@ function ExerciseChartCard({ data, onSessionClick }: {
 
   return (
     <div className="hist-ex-card">
-      <button className="hist-ex-header" onClick={() => setExpanded(v => !v)}>
-        <span className="hist-ex-name">{exercise.name}</span>
-        <span className="hist-ex-chevron">{expanded ? '▴' : '▾'}</span>
-      </button>
+      <div className="hist-ex-header-row">
+        <button className="hist-ex-header" onClick={() => setExpanded(v => !v)}>
+          <span className="hist-ex-name">{exercise.name}</span>
+          <span className="hist-ex-chevron">{expanded ? '▴' : '▾'}</span>
+        </button>
+        <div className="hist-range-toggle">
+          <button
+            className={`hist-range-btn${range === 7 ? ' hist-range-btn--active' : ''}`}
+            onClick={() => setRange(7)}
+          >7d</button>
+          <button
+            className={`hist-range-btn${range === 30 ? ' hist-range-btn--active' : ''}`}
+            onClick={() => setRange(30)}
+          >30d</button>
+        </div>
+      </div>
 
       <div className="hist-chart-wrap" onClick={() => setExpanded(v => !v)}>
-        <WeeklyChart days={weeklyData} targetReps={targetReps} />
+        <WeeklyChart days={chartData} targetReps={targetReps} />
       </div>
 
       {expanded && (
@@ -276,7 +293,6 @@ export default function History() {
       return {
         exercise: ex,
         allSets,
-        weeklyData: buildWeeklyData(allSets),
         stats: computeStats(allSets),
         dayGroups,
       };
