@@ -28,6 +28,7 @@ function ExerciseForm({
   gtgMaxSets, setGtgMaxSets,
   nameEditable,
   nameError,
+  defaultAdvancedOpen = false,
   onSave,
   onCancel,
   onDelete,
@@ -46,15 +47,19 @@ function ExerciseForm({
   gtgMaxSets: number; setGtgMaxSets: (v: number) => void;
   nameEditable: boolean;
   nameError?: string;
+  defaultAdvancedOpen?: boolean;
   onSave: () => void;
   onCancel: () => void;
   onDelete?: () => void;
   saveLabel?: string;
 }) {
+  const [advancedOpen, setAdvancedOpen] = useState(defaultAdvancedOpen);
+
   return (
     <div className="add-form">
       <h3>{title}</h3>
 
+      {/* ── Core fields ── */}
       <label className="field-label">Name</label>
       <input
         className={`field-input${nameError ? ' field-input--error' : ''}`}
@@ -76,64 +81,78 @@ function ExerciseForm({
         ))}
       </div>
 
-      {trackingType === 'reps' && (
-        <div className="default-value-row">
-          <label className="field-label">Default reps</label>
-          <input type="number" className="field-input field-input--small" min={1} value={defaultReps}
-            onChange={e => setDefaultReps(Number(e.target.value))} />
-        </div>
-      )}
+      {/* ── Advanced settings toggle ── */}
+      <button
+        type="button"
+        className={`advanced-toggle${advancedOpen ? ' advanced-toggle--open' : ''}`}
+        onClick={() => setAdvancedOpen(v => !v)}
+      >
+        <span>Advanced settings</span>
+        <span className="advanced-chevron">▾</span>
+      </button>
 
-      {trackingType === 'duration' && (
-        <div className="default-value-row">
-          <label className="field-label">Default duration</label>
-          <div className="duration-row">
-            <input type="number" className="field-input field-input--small" min={1} value={defaultDuration}
-              onChange={e => setDefaultDuration(Number(e.target.value))} />
-            <div className="unit-toggle">
-              {(['sec', 'min'] as const).map(u => (
-                <button key={u} type="button"
-                  className={`unit-btn ${durationUnit === u ? 'unit-btn--active' : ''}`}
-                  onClick={() => setDurationUnit(u)}>{u}</button>
-              ))}
+      {advancedOpen && (
+        <div className="advanced-section">
+          {trackingType === 'reps' && (
+            <div className="default-value-row">
+              <label className="field-label">Default reps</label>
+              <input type="number" className="field-input field-input--small" min={1} value={defaultReps}
+                onChange={e => setDefaultReps(Number(e.target.value))} />
             </div>
-          </div>
+          )}
+
+          {trackingType === 'duration' && (
+            <div className="default-value-row">
+              <label className="field-label">Default duration</label>
+              <div className="duration-row">
+                <input type="number" className="field-input field-input--small" min={1} value={defaultDuration}
+                  onChange={e => setDefaultDuration(Number(e.target.value))} />
+                <div className="unit-toggle">
+                  {(['sec', 'min'] as const).map(u => (
+                    <button key={u} type="button"
+                      className={`unit-btn ${durationUnit === u ? 'unit-btn--active' : ''}`}
+                      onClick={() => setDurationUnit(u)}>{u}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {trackingType === 'distance' && (
+            <div className="default-value-row">
+              <label className="field-label">Default distance (km)</label>
+              <input type="number" className="field-input field-input--small" min={0.1} step={0.1} value={defaultDistance}
+                onChange={e => setDefaultDistance(Number(e.target.value))} />
+            </div>
+          )}
+
+          <label className="field-label checkbox-label">
+            <input type="checkbox" checked={supportsWeight} onChange={e => setSupportsWeight(e.target.checked)} />
+            Supports added weight
+          </label>
+
+          <div className="form-section-divider" />
+
+          <label className="field-label checkbox-label">
+            <input type="checkbox" checked={gtgEnabled} onChange={e => setGtgEnabled(e.target.checked)} />
+            Enable GTG protocol
+          </label>
+
+          {gtgEnabled && (
+            <>
+              <div className="default-value-row">
+                <label className="field-label">Min interval (min)</label>
+                <input type="number" className="field-input field-input--small" min={1}
+                  value={gtgMinInterval} onChange={e => setGtgMinInterval(Number(e.target.value))} />
+              </div>
+              <div className="default-value-row">
+                <label className="field-label">Max sets/day</label>
+                <input type="number" className="field-input field-input--small" min={1}
+                  value={gtgMaxSets} onChange={e => setGtgMaxSets(Number(e.target.value))} />
+              </div>
+            </>
+          )}
         </div>
-      )}
-
-      {trackingType === 'distance' && (
-        <div className="default-value-row">
-          <label className="field-label">Default distance (km)</label>
-          <input type="number" className="field-input field-input--small" min={0.1} step={0.1} value={defaultDistance}
-            onChange={e => setDefaultDistance(Number(e.target.value))} />
-        </div>
-      )}
-
-      <label className="field-label checkbox-label">
-        <input type="checkbox" checked={supportsWeight} onChange={e => setSupportsWeight(e.target.checked)} />
-        Supports added weight
-      </label>
-
-      <div className="form-section-divider" />
-
-      <label className="field-label checkbox-label">
-        <input type="checkbox" checked={gtgEnabled} onChange={e => setGtgEnabled(e.target.checked)} />
-        Enable GTG protocol
-      </label>
-
-      {gtgEnabled && (
-        <>
-          <div className="default-value-row">
-            <label className="field-label">Min interval (min)</label>
-            <input type="number" className="field-input field-input--small" min={1}
-              value={gtgMinInterval} onChange={e => setGtgMinInterval(Number(e.target.value))} />
-          </div>
-          <div className="default-value-row">
-            <label className="field-label">Max sets/day</label>
-            <input type="number" className="field-input field-input--small" min={1}
-              value={gtgMaxSets} onChange={e => setGtgMaxSets(Number(e.target.value))} />
-          </div>
-        </>
       )}
 
       <div className="form-actions">
@@ -356,6 +375,7 @@ export default function Exercises() {
           >
             {editingId === ex.id ? (
               <ExerciseForm title="Edit Exercise" {...formProps} nameEditable={false}
+                defaultAdvancedOpen={ex.gtgEnabled || ex.supportsWeight || ex.defaultReps !== 5 || ex.defaultDuration !== 60 || ex.defaultDistance !== 1}
                 onSave={saveEdit} onCancel={() => { setEditingId(null); resetForm(); }}
                 onDelete={deleteExercise} saveLabel="Update" />
             ) : (

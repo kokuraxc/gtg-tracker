@@ -195,6 +195,48 @@
   margin: 1rem 0 0.25rem;
 }
 
+/* ── Advanced settings toggle ─────────────────────────────── */
+
+.advanced-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.advanced-toggle:active {
+  background: var(--bg-surface-2);
+}
+
+.advanced-chevron {
+  display: inline-block;
+  transition: transform 0.2s;
+  color: var(--text-3);
+}
+
+.advanced-toggle--open .advanced-chevron {
+  transform: rotate(180deg);
+}
+
+.advanced-section {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+}
+
 .form-actions {
   display: flex;
   gap: 0.75rem;
