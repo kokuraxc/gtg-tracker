@@ -27,10 +27,14 @@ export async function saveExerciseOrder(ordered: Exercise[]): Promise<void> {
 }
 
 export async function seedDefaultExercises(): Promise<void> {
-  // Only seed once — never re-seed after user deletes data
+  // Only seed once — never re-seed after user deletes data.
+  // Claim the flag synchronously before the first await so that a second
+  // concurrent call (React 18 StrictMode double-invocation in dev) sees it
+  // immediately and exits without racing to insert duplicates.
   if (localStorage.getItem('gtg-seeded') === '1') return;
+  localStorage.setItem('gtg-seeded', '1');
   const count = await db.exercises.count();
-  if (count > 0) { localStorage.setItem('gtg-seeded', '1'); return; }
+  if (count > 0) return;
 
   const now = new Date();
   const defaults: Omit<Exercise, 'id'>[] = [

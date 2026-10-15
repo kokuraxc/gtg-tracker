@@ -27,6 +27,7 @@ function ExerciseForm({
   gtgMinInterval, setGtgMinInterval,
   gtgMaxSets, setGtgMaxSets,
   nameEditable,
+  nameError,
   onSave,
   onCancel,
   onDelete,
@@ -44,6 +45,7 @@ function ExerciseForm({
   gtgMinInterval: number; setGtgMinInterval: (v: number) => void;
   gtgMaxSets: number; setGtgMaxSets: (v: number) => void;
   nameEditable: boolean;
+  nameError?: string;
   onSave: () => void;
   onCancel: () => void;
   onDelete?: () => void;
@@ -55,13 +57,14 @@ function ExerciseForm({
 
       <label className="field-label">Name</label>
       <input
-        className="field-input"
+        className={`field-input${nameError ? ' field-input--error' : ''}`}
         value={name}
         onChange={e => setName(e.target.value)}
         placeholder="e.g. Dips"
         disabled={!nameEditable}
         autoFocus={nameEditable}
       />
+      {nameError && <p className="field-error">{nameError}</p>}
 
       <label className="field-label">Tracking</label>
       <div className="radio-group">
@@ -151,6 +154,7 @@ export default function Exercises() {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
   const [trackingType, setTrackingType] = useState<'reps' | 'duration' | 'distance'>('reps');
   const [supportsWeight, setSupportsWeight] = useState(false);
   const [defaultReps, setDefaultReps] = useState(5);
@@ -175,7 +179,7 @@ export default function Exercises() {
   }
 
   function resetForm() {
-    setName(''); setTrackingType('reps'); setSupportsWeight(false);
+    setName(''); setNameError(''); setTrackingType('reps'); setSupportsWeight(false);
     setDefaultReps(5); setDefaultDuration(60); setDurationUnit('sec'); setDefaultDistance(1);
     setGtgEnabled(false); setGtgMinInterval(60); setGtgMaxSets(6);
   }
@@ -210,6 +214,9 @@ export default function Exercises() {
 
   async function addExercise() {
     if (!name.trim()) return;
+    const duplicate = exercises.some(ex => ex.name.trim().toLowerCase() === name.trim().toLowerCase());
+    if (duplicate) { setNameError('An exercise with this name already exists.'); return; }
+    setNameError('');
     const now = new Date();
     await dbAddExercise({
       name: name.trim(),
@@ -317,7 +324,10 @@ export default function Exercises() {
   }
 
   const formProps = {
-    name, setName, trackingType, setTrackingType,
+    name,
+    setName: (v: string) => { setName(v); setNameError(''); },
+    nameError,
+    trackingType, setTrackingType,
     supportsWeight, setSupportsWeight,
     defaultReps, setDefaultReps,
     defaultDuration, setDefaultDuration,
