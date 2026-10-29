@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+sync-worker/.wrangler/
+sync-worker/node_modules/
