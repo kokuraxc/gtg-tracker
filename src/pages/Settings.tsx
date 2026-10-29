@@ -1,5 +1,14 @@
-import { useState, useRef } from 'react';
-import { db } from '../db/database';
+import { useState, useRef, useEffect } from 'react';
+import { db, replaceAllData } from '../db/database';
+import {
+  syncConfigured,
+  getSyncKey,
+  setSyncKey,
+  disconnectSync,
+  syncNow,
+  getLastSyncAt,
+  getLastSyncError,
+} from '../services/sync';
 import {
   notificationsEnabled,
   requestNotificationPermission,
@@ -29,6 +38,45 @@ export default function Settings() {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem('gtg-theme') as Theme) ?? 'system'
   );
+
+  // ── Sync ────────────────────────────────────────────────────
+  const [syncKey, setSyncKeyState] = useState<string | null>(() => getSyncKey());
+  const [keyInput, setKeyInput] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [, setSyncTick] = useState(0);
+
+  useEffect(() => {
+    const bump = () => { setSyncKeyState(getSyncKey()); setSyncTick(n => n + 1); };
+    window.addEventListener('gtg-sync-status', bump);
+    return () => window.removeEventListener('gtg-sync-status', bump);
+  }, []);
+
+  function connectSync() {
+    try {
+      setSyncKey(keyInput);
+      setKeyInput('');
+      setSyncKeyState(getSyncKey());
+    } catch (e) {
+      showStatus('error', e instanceof Error ? e.message : 'Invalid key.');
+    }
+  }
+
+  async function runSyncNow() {
+    setSyncing(true);
+    const r = await syncNow();
+    setSyncing(false);
+    if (r.ok) showStatus('success', `Synced (${r.pulled} received, ${r.pushed} sent).`);
+    else showStatus('error', r.error ?? 'Sync failed.');
+  }
+
+  function handleDisconnect() {
+    if (!confirm('Stop syncing on this device? Data on this device is kept.')) return;
+    disconnectSync();
+    setSyncKeyState(null);
+  }
+
+  const lastSyncAt = getLastSyncAt();
+  const lastSyncError = getLastSyncError();
 
   function handleTheme(t: Theme) {
     setTheme(t);
@@ -131,14 +179,7 @@ export default function Settings() {
 
       if (!confirm(`Import ${data.exercises.length} exercises, ${data.sessions.length} sessions, and ${data.sets.length} sets? Existing data will be replaced.`)) return;
 
-      await db.transaction('rw', db.exercises, db.sessions, db.sets, async () => {
-        await db.exercises.clear();
-        await db.sessions.clear();
-        await db.sets.clear();
-        await db.exercises.bulkAdd(data.exercises);
-        await db.sessions.bulkAdd(data.sessions);
-        await db.sets.bulkAdd(data.sets);
-      });
+      await replaceAllData({ exercises: data.exercises, sessions: data.sessions, sets: data.sets });
 
       showStatus('success', `Imported ${data.sets.length} sets across ${data.exercises.length} exercises.`);
     } catch {
@@ -150,11 +191,7 @@ export default function Settings() {
   async function deleteAllData() {
     if (!confirm('Delete ALL workout data? This cannot be undone.')) return;
     try {
-      await db.transaction('rw', db.exercises, db.sessions, db.sets, async () => {
-        await db.exercises.clear();
-        await db.sessions.clear();
-        await db.sets.clear();
-      });
+      await replaceAllData();
       showStatus('success', 'All data deleted.');
     } catch {
       showStatus('error', 'Delete failed.');
@@ -226,6 +263,54 @@ export default function Settings() {
             }}
           />
         </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">Sync</div>
+        {!syncConfigured() ? (
+          <div className="setting-hint">Sync is not configured in this build.</div>
+        ) : !syncKey ? (
+          <>
+            <div className="setting-hint" style={{ marginBottom: 8 }}>
+              Paste your sync key to sync this device with your others.
+            </div>
+            <input
+              type="text"
+              className="setting-input"
+              style={{ width: '100%', boxSizing: 'border-box', marginBottom: 8 }}
+              placeholder="Sync key"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              value={keyInput}
+              onChange={e => setKeyInput(e.target.value)}
+            />
+            <button className="settings-btn" onClick={connectSync} disabled={!keyInput.trim()}>
+              Connect &amp; sync
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="setting-row">
+              <div>
+                <label className="setting-label">Connected</label>
+                <div className="setting-hint">
+                  {lastSyncError
+                    ? `Last sync failed: ${lastSyncError}`
+                    : lastSyncAt
+                      ? `Last synced ${new Date(lastSyncAt).toLocaleString()}`
+                      : 'Not synced yet'}
+                </div>
+              </div>
+            </div>
+            <button className="settings-btn" onClick={runSyncNow} disabled={syncing}>
+              {syncing ? 'Syncing…' : 'Sync now'}
+            </button>
+            <button className="settings-btn" onClick={handleDisconnect}>
+              Disconnect this device
+            </button>
+          </>
+        )}
       </div>
 
       <div className="settings-section">

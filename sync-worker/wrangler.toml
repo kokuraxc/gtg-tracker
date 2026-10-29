@@ -1,0 +1,13 @@
+name = "gtg-sync"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://kokuraxc.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gtg-sync"
+database_id = "cfbf79a6-c128-4f6b-8660-d5ce3df63b0a"
+
+# SYNC_SECRET is a secret:  npx wrangler secret put SYNC_SECRET

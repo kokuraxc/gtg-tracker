@@ -1,4 +1,4 @@
-import { db } from './database';
+import { db, syncControl } from './database';
 import type { WorkoutSet } from '../models/WorkoutSet';
 
 export async function addSet(set: Omit<WorkoutSet, 'id'>): Promise<number> {
@@ -27,5 +27,12 @@ export async function updateSet(id: number, changes: Partial<WorkoutSet>): Promi
 }
 
 export async function deleteSet(id: number): Promise<void> {
-  await db.sets.delete(id);
+  await db.transaction('rw', db.sets, db.tombstones, async () => {
+    const s = await db.sets.get(id);
+    await db.sets.delete(id);
+    if (s?.uuid) {
+      await db.tombstones.add({ kind: 'sets', uuid: s.uuid, deletedAt: Date.now() });
+    }
+  });
+  syncControl.onLocalChange?.();
 }

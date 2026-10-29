@@ -30,10 +30,17 @@ export async function getOrCreateTodaySession(exerciseId: number, protocol = 'GT
 
   if (existing?.id) return existing.id;
 
+  // Deterministic uuid (exercise + local day + protocol) so two devices logging the
+  // same exercise on the same day end up in one shared session after sync.
+  const ex = await db.exercises.get(exerciseId);
+  const day = `${start.getFullYear()}-${start.getMonth() + 1}-${start.getDate()}`;
+  const uuid = ex?.uuid ? `${ex.uuid}:${day}:${protocol}` : undefined;
+
   return db.sessions.add({
     exerciseId,
     startedAt: new Date(),
     protocol,
+    ...(uuid ? { uuid } : {}),
   } as WorkoutSession);
 }
 

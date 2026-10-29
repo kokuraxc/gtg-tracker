@@ -18,4 +18,7 @@ export interface Exercise {
   createdAt: Date;
   updatedAt: Date;
   archived: boolean;
+  /** sync: stable cross-device id and last-modified time (ms) */
+  uuid?: string;
+  modifiedAt?: number;
 }

@@ -5,4 +5,6 @@ export interface WorkoutSession {
   completedAt?: Date;
   protocol: string;
   notes?: string;
+  uuid?: string;
+  modifiedAt?: number;
 }

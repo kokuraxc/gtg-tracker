@@ -8,4 +8,6 @@ export interface WorkoutSet {
   distance?: number;
   timestamp: Date;
   notes?: string;
+  uuid?: string;
+  modifiedAt?: number;
 }
