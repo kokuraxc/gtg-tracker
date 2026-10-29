@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAllExercises, addExercise as dbAddExercise, updateExercise as dbUpdateExercise, seedDefaultExercises, saveExerciseOrder } from '../db/exercises';
+import { getAllExercises, addExercise as dbAddExercise, updateExercise as dbUpdateExercise, saveExerciseOrder } from '../db/exercises';
 import { db } from '../db/database';
 import type { Exercise } from '../models/Exercise';
 import './Exercises.css';
@@ -189,7 +189,7 @@ export default function Exercises() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    seedDefaultExercises().then(loadExercises);
+    loadExercises();
   }, []);
 
   async function loadExercises() {

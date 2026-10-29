@@ -25,39 +25,3 @@ export async function saveExerciseOrder(ordered: Exercise[]): Promise<void> {
     }
   });
 }
-
-export async function seedDefaultExercises(): Promise<void> {
-  // Only seed once — never re-seed after user deletes data.
-  // Claim the flag synchronously before the first await so that a second
-  // concurrent call (React 18 StrictMode double-invocation in dev) sees it
-  // immediately and exits without racing to insert duplicates.
-  if (localStorage.getItem('gtg-seeded') === '1') return;
-  localStorage.setItem('gtg-seeded', '1');
-  const count = await db.exercises.count();
-  if (count > 0) return;
-
-  const now = new Date();
-  const defaults: Omit<Exercise, 'id'>[] = [
-    {
-      name: 'Pull-up', category: 'strength', trackingType: 'reps',
-      supportsWeight: true, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 5, gtgEnabled: true, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
-      sortOrder: 0, createdAt: now, updatedAt: now, archived: false,
-    },
-    {
-      name: 'Push-up', category: 'strength', trackingType: 'reps',
-      supportsWeight: false, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 20, gtgEnabled: false, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
-      sortOrder: 1, createdAt: now, updatedAt: now, archived: false,
-    },
-    {
-      name: 'Chin-up', category: 'strength', trackingType: 'reps',
-      supportsWeight: true, supportsReps: true, supportsDuration: false, supportsDistance: false,
-      defaultReps: 5, gtgEnabled: false, gtgMinIntervalMinutes: 60, gtgMaxSetsPerDay: 6,
-      sortOrder: 2, createdAt: now, updatedAt: now, archived: false,
-    },
-  ];
-
-  await db.exercises.bulkAdd(defaults as Exercise[]);
-  localStorage.setItem('gtg-seeded', '1');
-}
