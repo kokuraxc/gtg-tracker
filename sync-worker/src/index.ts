@@ -100,7 +100,20 @@ ON CONFLICT (user_id, kind, uuid) DO UPDATE SET
 WHERE excluded.modified_at > records.modified_at`;
 
 export default {
+  // Wrap so that unexpected errors still carry CORS headers (otherwise the browser only
+  // reports an opaque "NetworkError" and hides the real cause).
   async fetch(req: Request, env: Env): Promise<Response> {
+    try {
+      return await handle(req, env);
+    } catch (e) {
+      console.log('sync error', String(e));
+      return json({ error: 'server error', detail: String(e) }, env, 500);
+    }
+  },
+};
+
+async function handle(req: Request, env: Env): Promise<Response> {
+  {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(env) });
 
     const url = new URL(req.url);
@@ -166,5 +179,5 @@ export default {
     }
 
     return json({ records: [], cursor: 0, more: false }, env);
-  },
-};
+  }
+}
