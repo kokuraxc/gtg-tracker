@@ -111,53 +111,6 @@ export default function Settings() {
     }
   }
 
-  // ── Export CSV ─────────────────────────────────────────────
-  async function exportCSV() {
-    try {
-      const [exercises, sessions, sets] = await Promise.all([
-        db.exercises.toArray(),
-        db.sessions.toArray(),
-        db.sets.toArray(),
-      ]);
-
-      const exerciseMap = Object.fromEntries(exercises.map(e => [e.id, e]));
-      const sessionMap = Object.fromEntries(sessions.map(s => [s.id, s]));
-
-      const rows: string[][] = [['Date', 'Time', 'Exercise', 'Set #', 'Value', 'Unit']];
-
-      const sorted = [...sets].sort((a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
-      for (const set of sorted) {
-        const session = sessionMap[set.sessionId];
-        const exercise = session ? exerciseMap[session.exerciseId] : undefined;
-        const ts = new Date(set.timestamp);
-        const date = ts.toLocaleDateString();
-        const time = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const name = exercise?.name ?? 'Unknown';
-        let value = '';
-        let unit = '';
-        if (set.reps != null)     { value = String(set.reps);     unit = 'reps'; }
-        else if (set.duration != null) { value = String(set.duration); unit = exercise?.durationUnit ?? 'sec'; }
-        else if (set.distance != null) { value = String(set.distance); unit = 'km'; }
-        rows.push([date, time, name, String(set.setNumber), value, unit]);
-      }
-
-      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `gtg-export-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showStatus('success', `Exported ${sets.length} sets as CSV.`);
-    } catch {
-      showStatus('error', 'CSV export failed.');
-    }
-  }
-
   // ── Import ──────────────────────────────────────────────────
   function triggerImport() {
     importRef.current?.click();
@@ -324,10 +277,6 @@ export default function Settings() {
 
         <button className="settings-btn" onClick={exportData}>
           Export data (JSON)
-        </button>
-
-        <button className="settings-btn" onClick={exportCSV}>
-          Export data (CSV)
         </button>
 
         <button className="settings-btn" onClick={triggerImport}>
