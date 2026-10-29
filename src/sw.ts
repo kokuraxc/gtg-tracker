@@ -6,6 +6,10 @@ declare const self: ServiceWorkerGlobalScope;
 // Inject Workbox precache manifest
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Activate a new version immediately instead of waiting for every open tab/app to close
+self.addEventListener('install', () => { void self.skipWaiting(); });
+self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+
 // ── Notification click → focus/open the app ───────────────
 self.addEventListener('notificationclick', event => {
   event.notification.close();
